@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construtor de Consulta – BME</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --blue-900: #0c2340;
+    --blue-700: #1351b4;
+    --blue-500: #2670e8;
+    --blue-100: #dbe8fb;
+    --blue-50:  #edf3fe;
+    --gray-900: #1b1f27;
+    --gray-700: #3d4554;
+    --gray-500: #636978;
+    --gray-300: #c5c9d3;
+    --gray-100: #f0f1f3;
+    --gray-50:  #f8f9fb;
+    --white:    #ffffff;
+    --green-600: #166534;
+    --green-50:  #f0fdf4;
+    --sidebar-w: 260px;
+    --var-panel: 320px;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-50); color: var(--gray-900); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  /* ── Gov.br bar ── */
+  .govbar { background: var(--blue-900); color: #fff; font-size: 11px; padding: 4px 24px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .govbar a { color: #a8c4f0; text-decoration: none; margin-left: auto; }
+
+  /* ── App header ── */
+  .appheader {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-300);
+    padding: 0 16px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .logo-badge { background: var(--blue-700); color: #fff; font-weight: 800; font-size: 13px; padding: 3px 7px; border-radius: 5px; letter-spacing: 1px; }
+  .logo-text { font-size: 11px; color: var(--gray-500); }
+
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray-500); }
+  .breadcrumb a { color: var(--blue-700); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .sep { color: var(--gray-300); }
+
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .btn { padding: 6px 14px; border-radius: 7px; font-size: 13px; cursor: pointer; border: none; font-weight: 500; transition: all .15s; display: flex; align-items: center; gap: 5px; }
+  .btn-ghost { background: none; color: var(--gray-700); border: 1px solid var(--gray-300); }
+  .btn-ghost:hover { background: var(--gray-100); }
+  .btn-primary { background: var(--blue-700); color: #fff; }
+  .btn-primary:hover { background: var(--blue-900); }
+  .btn-run { background: var(--green-600); color: #fff; font-size: 14px; padding: 7px 20px; }
+  .btn-run:hover { background: #14532d; }
+
+  /* ── Layout ── */
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Left nav sidebar ── */
+  .nav-sidebar {
+    width: 52px;
+    background: var(--white);
+    border-right: 1px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .nav-ico {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--gray-500);
+    transition: background .1s, color .1s;
+    text-decoration: none;
+  }
+  .nav-ico:hover { background: var(--gray-100); color: var(--gray-900); }
+  .nav-ico.active { background: var(--blue-50); color: var(--blue-700); }
+  .nav-divider { width: 28px; height: 1px; background: var(--gray-300); margin: 4px 0; }
+
+  /* ── Variable panel ── */
+  .var-panel {
+    width: var(--var-panel);
+    background: var(--white);
+    border-right: 1px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .var-panel-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .var-panel-title { font-size: 13px; font-weight: 700; color: var(--gray-900); }
+  .var-search {
+    position: relative;
+  }
+  .var-search input {
+    width: 100%;
+    padding: 6px 12px 6px 30px;
+    border: 1px solid var(--gray-300);
+    border-radius: 7px;
+    font-size: 12.5px;
+    background: var(--gray-100);
+    outline: none;
+  }
+  .var-search input:focus { border-color: var(--blue-500); background: var(--white); }
+  .var-search .ico { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--gray-500); }
+
+  .mode-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gray-100); }
+  .mode-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--gray-500);
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+  }
+  .mode-tab.active { color: var(--blue-700); border-bottom-color: var(--blue-700); font-weight: 600; }
+
+  /* tree */
+  .tree { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .tree-node { user-select: none; }
+  .tree-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 12.5px;
+    color: var(--gray-700);
+    transition: background .1s;
+  }
+  .tree-row:hover { background: var(--gray-100); }
+  .tree-row.selected { background: var(--blue-50); color: var(--blue-700); font-weight: 600; }
+  .tree-toggle { width: 14px; text-align: center; font-size: 11px; color: var(--gray-400, #9ca3af); flex-shrink: 0; }
+  .tree-ico { font-size: 13px; flex-shrink: 0; }
+  .tree-label { flex: 1; line-height: 1.3; }
+  .tree-add {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: var(--blue-100);
+    color: var(--blue-700);
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .tree-row:hover .tree-add { display: flex; }
+
+  .tree-children { padding-left: 16px; }
+
+  /* ── Work area ── */
+  .work-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Query composer ── */
+  .composer {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-300);
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .composer-title { font-size: 13px; font-weight: 700; color: var(--gray-700); display: flex; align-items: center; gap: 6px; }
+
+  /* geo filter */
+  .geo-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    padding: 8px 14px;
+  }
+  .geo-label { font-size: 11.5px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+  .geo-crumb { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .geo-select {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1.5px solid var(--gray-300);
+    font-size: 12.5px;
+    background: var(--white);
+    cursor: pointer;
+    color: var(--gray-700);
+  }
+  .geo-select.active { border-color: var(--blue-500); color: var(--blue-700); background: var(--blue-50); }
+  .geo-arrow { color: var(--gray-300); font-size: 12px; }
+  .geo-filter-btn { margin-left: auto; font-size: 12px; color: var(--blue-700); background: var(--blue-50); border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+  .geo-filter-btn:hover { background: var(--blue-100); }
+
+  /* axes */
+  .axes-row { display: flex; gap: 10px; }
+  .axis-box {
+    flex: 1;
+    border: 1.5px dashed var(--gray-300);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-height: 64px;
+    transition: border-color .15s, background .15s;
+  }
+  .axis-box:hover { border-color: var(--blue-300, #93b8f5); background: var(--blue-50); }
+  .axis-label { font-size: 10.5px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+  .axis-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .chip-cat { background: #fff3e0; color: #92400e; border: 1px solid #fcd34d; }
+  .chip-quant { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+  .chip-remove { background: none; border: none; cursor: pointer; font-size: 13px; color: inherit; opacity: .6; padding: 0; line-height: 1; }
+  .chip-remove:hover { opacity: 1; }
+  .axis-placeholder { font-size: 12px; color: var(--gray-400, #9ca3af); font-style: italic; }
+
+  /* measures */
+  .measures-row { display: flex; align-items: center; gap: 10px; }
+  .measure-label { font-size: 11px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+  .measure-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    background: var(--green-50);
+    color: var(--green-600);
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .measure-add { font-size: 12px; color: var(--blue-700); background: none; border: 1px dashed var(--gray-300); padding: 4px 10px; border-radius: 20px; cursor: pointer; }
+  .measure-add:hover { border-color: var(--blue-500); background: var(--blue-50); }
+
+  /* run bar */
+  .run-bar { display: flex; align-items: center; gap: 10px; }
+  .run-info { font-size: 12px; color: var(--gray-500); flex: 1; }
+  .run-info strong { color: var(--gray-700); }
+
+  /* ── Results preview ── */
+  .results-area { flex: 1; overflow: auto; padding: 24px; }
+
+  .results-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .results-title { font-size: 15px; font-weight: 700; flex: 1; }
+  .results-tabs { display: flex; gap: 0; border: 1px solid var(--gray-300); border-radius: 8px; overflow: hidden; }
+  .results-tab { padding: 6px 14px; font-size: 12.5px; cursor: pointer; background: var(--white); color: var(--gray-700); border: none; border-right: 1px solid var(--gray-300); transition: background .1s; }
+  .results-tab:last-child { border-right: none; }
+  .results-tab.active { background: var(--blue-700); color: #fff; }
+  .results-tab:hover:not(.active) { background: var(--gray-100); }
+
+  .results-actions { display: flex; gap: 6px; }
+  .action-btn { display: flex; align-items: center; gap: 4px; padding: 6px 12px; border: 1px solid var(--gray-300); border-radius: 7px; background: var(--white); font-size: 12.5px; cursor: pointer; color: var(--gray-700); transition: background .1s; }
+  .action-btn:hover { background: var(--gray-100); }
+
+  /* table */
+  .table-wrap { overflow: auto; background: var(--white); border: 1px solid var(--gray-300); border-radius: 12px; }
+  table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+  th {
+    background: var(--gray-50);
+    border-bottom: 1.5px solid var(--gray-300);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--gray-700);
+    white-space: nowrap;
+  }
+  th.geo { background: var(--blue-50); color: var(--blue-700); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); white-space: nowrap; }
+  td.cat { font-weight: 500; color: var(--gray-900); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--gray-50); }
+
+  /* timing info */
+  .timing { margin-top: 12px; font-size: 11px; color: var(--gray-400, #9ca3af); display: flex; gap: 16px; }
+
+  /* AI suggestion */
+  .ai-hint {
+    background: var(--blue-50);
+    border: 1px solid var(--blue-100);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--blue-700);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .ai-hint .ico { font-size: 16px; flex-shrink: 0; }
+  .ai-hint a { color: var(--blue-700); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- Gov.br bar -->
+<div class="govbar">
+  <span>🇧🇷</span>
+  <strong>BRASIL</strong>
+  <span style="margin-left:8px; opacity:.7">|</span>
+  <a href="#">Acesso à informação</a>
+  <a href="#" style="margin-left:16px">Participe</a>
+</div>
+
+<!-- App header -->
+<header class="appheader">
+  <a class="logo" href="home.html">
+    <span class="logo-badge">BME</span>
+  </a>
+
+  <div class="breadcrumb">
+    <a href="home.html">Início</a>
+    <span class="sep">›</span>
+    <a href="#">Censo Demográfico 2010</a>
+    <span class="sep">›</span>
+    <span style="color: var(--gray-900); font-weight: 500;">Nova consulta</span>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-ghost">💾 Salvar</button>
+    <button class="btn btn-ghost">🔗 Compartilhar</button>
+    <div style="width:1px;height:24px;background:var(--gray-300)"></div>
+    <div style="width:30px;height:30px;border-radius:50%;background:var(--blue-700);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer">M</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- Thin nav icons -->
+  <nav class="nav-sidebar">
+    <a class="nav-ico" href="home.html" title="Início">🏠</a>
+    <a class="nav-ico active" href="#" title="Construtor">⚙️</a>
+    <div class="nav-divider"></div>
+    <a class="nav-ico" href="#" title="Minhas consultas">📊</a>
+    <a class="nav-ico" href="#" title="Favoritos">⭐</a>
+    <a class="nav-ico" href="#" title="Compartilhados">🔗</a>
+    <div class="nav-divider"></div>
+    <a class="nav-ico" href="#" title="Consultas oficiais">📋</a>
+  </nav>
+
+  <!-- Variable panel -->
+  <div class="var-panel">
+    <div class="var-panel-header">
+      <div class="var-panel-title">📂 Censo Demográfico 2010</div>
+      <div class="var-search">
+        <span class="ico">🔍</span>
+        <input type="text" placeholder="Buscar variável…">
+      </div>
+    </div>
+
+    <div class="mode-tabs">
+      <div class="mode-tab active">Árvore</div>
+      <div class="mode-tab">✦ Busca IA</div>
+    </div>
+
+    <div class="tree">
+      <!-- Domicílios (expanded) -->
+      <div class="tree-node">
+        <div class="tree-row">
+          <span class="tree-toggle">▼</span>
+          <span class="tree-ico">📁</span>
+          <span class="tree-label">Domicílios</span>
+        </div>
+        <div class="tree-children">
+          <div class="tree-node">
+            <div class="tree-row">
+              <span class="tree-toggle">▼</span>
+              <span class="tree-ico">📁</span>
+              <span class="tree-label">Bens duráveis</span>
+            </div>
+            <div class="tree-children">
+              <div class="tree-row selected">
+                <span class="tree-toggle"></span>
+                <span class="tree-ico">📄</span>
+                <span class="tree-label">Automóvel, uso particular, existência</span>
+                <button class="tree-add">+</button>
+              </div>
+              <div class="tree-row">
+                <span class="tree-toggle"></span>
+                <span class="tree-ico">📄</span>
+                <span class="tree-label">Geladeira, existência</span>
+                <button class="tree-add">+</button>
+              </div>
+              <div class="tree-row">
+                <span class="tree-toggle"></span>
+                <span class="tree-ico">📄</span>
+                <span class="tree-label">Máquina de lavar roupa, existência</span>
+                <button class="tree-add">+</button>
+              </div>
+              <div class="tree-row">
+                <span class="tree-toggle"></span>
+                <span class="tree-ico">📄</span>
+                <span class="tree-label">Microcomputador c/ Internet</span>
+                <button class="tree-add">+</button>
+              </div>
+              <div class="tree-row">
+                <span class="tree-toggle"></span>
+                <span class="tree-ico">📄</span>
+                <span class="tree-label">Televisão, existência</span>
+                <button class="tree-add">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="tree-node">
+            <div class="tree-row">
+              <span class="tree-toggle">▶</span>
+              <span class="tree-ico">📁</span>
+              <span class="tree-label">Características gerais</span>
+            </div>
+          </div>
+          <div class="tree-node">
+            <div class="tree-row">
+              <span class="tree-toggle">▶</span>
+              <span class="tree-ico">📁</span>
+              <span class="tree-label">Rendimentos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pessoas (collapsed) -->
+      <div class="tree-node">
+        <div class="tree-row">
+          <span class="tree-toggle">▶</span>
+          <span class="tree-ico">📁</span>
+          <span class="tree-label">Pessoas</span>
+        </div>
+      </div>
+
+      <!-- Mortalidade (collapsed) -->
+      <div class="tree-node">
+        <div class="tree-row">
+          <span class="tree-toggle">▶</span>
+          <span class="tree-ico">📁</span>
+          <span class="tree-label">Mortalidade</span>
+        </div>
+      </div>
+
+      <!-- Famílias (collapsed) -->
+      <div class="tree-node">
+        <div class="tree-row">
+          <span class="tree-toggle">▶</span>
+          <span class="tree-ico">📁</span>
+          <span class="tree-label">Famílias</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Work area -->
+  <div class="work-area">
+
+    <!-- Composer -->
+    <div class="composer">
+
+      <!-- Geo filter -->
+      <div class="geo-bar">
+        <span class="geo-label">📍 Abrangência</span>
+        <div class="geo-crumb">
+          <select class="geo-select active">
+            <option>Brasil (País)</option>
+          </select>
+          <span class="geo-arrow">›</span>
+          <select class="geo-select">
+            <option>Todas as regiões</option>
+            <option>Norte</option>
+            <option>Nordeste</option>
+            <option>Centro-Oeste</option>
+            <option>Sudeste</option>
+            <option>Sul</option>
+          </select>
+          <span class="geo-arrow">›</span>
+          <select class="geo-select">
+            <option>Todos os estados</option>
+          </select>
+          <span class="geo-arrow">›</span>
+          <select class="geo-select">
+            <option>Todos os municípios</option>
+          </select>
+        </div>
+        <button class="geo-filter-btn">Filtrar localidades específicas ›</button>
+      </div>
+
+      <!-- Axes -->
+      <div class="axes-row">
+        <div class="axis-box">
+          <div class="axis-label">↕ Linhas <span style="font-weight:400;font-size:10px;color:var(--gray-400)">(categorias)</span></div>
+          <div class="axis-chips">
+            <span class="chip chip-cat">Automóvel, existência <button class="chip-remove">×</button></span>
+            <span class="chip chip-cat">Máq. lavar roupa <button class="chip-remove">×</button></span>
+            <span class="chip chip-cat">Microcomp. c/ Internet <button class="chip-remove">×</button></span>
+          </div>
+        </div>
+        <div class="axis-box" style="flex: 0 0 180px;">
+          <div class="axis-label">↔ Colunas <span style="font-weight:400;font-size:10px;color:var(--gray-400)">(opcional)</span></div>
+          <div class="axis-chips">
+            <span class="axis-placeholder">Arraste variável aqui</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Measures + run -->
+      <div class="measures-row">
+        <span class="measure-label">∑ Medidas</span>
+        <span class="measure-chip">Rendimento domiciliar — Média <button style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--green-600);opacity:.7">×</button></span>
+        <span class="measure-chip">Domicílios — Contagem <button style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--green-600);opacity:.7">×</button></span>
+        <button class="measure-add">+ Adicionar medida</button>
+        <div style="flex:1"></div>
+        <span class="run-info"><strong>3</strong> variáveis categóricas · <strong>2</strong> medidas · nível Brasil</span>
+        <button class="btn btn-run">▶ Executar consulta</button>
+      </div>
+
+    </div>
+
+    <!-- Results -->
+    <div class="results-area">
+
+      <div class="ai-hint">
+        <span class="ico">✦</span>
+        <span>Com base nas variáveis selecionadas, <a href="#">um gráfico de barras empilhadas</a> pode representar melhor a distribuição de bens duráveis. <a href="#">Ver sugestão de visualização</a></span>
+      </div>
+
+      <div class="results-header">
+        <span class="results-title">Resultado — 31/07/2010 (Censo Demográfico 2010)</span>
+        <div class="results-tabs">
+          <button class="results-tab active">📋 Tabela</button>
+          <button class="results-tab">📊 Gráfico</button>
+          <button class="results-tab">🗺️ Mapa</button>
+        </div>
+        <div class="results-actions">
+          <button class="action-btn">⬇ Exportar</button>
+          <button class="action-btn">💾 Salvar</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="geo" rowspan="2" style="vertical-align:middle">Itens Geográficos</th>
+              <th colspan="3" style="text-align:center; background:#fafbfc; border-bottom:1px solid var(--gray-300)">Bens Duráveis (Sim / Não)</th>
+              <th rowspan="2" style="text-align:right;vertical-align:middle">Rendimento domiciliar<br><span style="font-weight:400;color:var(--gray-500)">Média (R$)</span></th>
+              <th rowspan="2" style="text-align:right;vertical-align:middle">Domicílios<br><span style="font-weight:400;color:var(--gray-500)">Contagem</span></th>
+            </tr>
+            <tr>
+              <th>Automóvel</th>
+              <th>Máq. lavar roupa</th>
+              <th>Microcomp. c/ Internet</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="cat">Brasil (País)</td><td>Não aplicável</td><td>Não aplicável</td><td>Não aplicável</td><td class="num">162,60</td><td class="num">730.894</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Sim</td><td>Sim</td><td>Sim</td><td class="num">2.637,12</td><td class="num">4.034.847</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Sim</td><td>Sim</td><td>Não</td><td class="num">6.531,55</td><td class="num">10.847.958</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Sim</td><td>Não</td><td>Sim</td><td class="num">3.169,93</td><td class="num">1.567.643</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Sim</td><td>Não</td><td>Não</td><td class="num">1.749,29</td><td class="num">3.833.958</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Sim</td><td>Sim</td><td>Não</td><td class="num">3.672,79</td><td class="num">1.704.035</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Sim</td><td>Não</td><td>Não</td><td class="num">2.393,77</td><td class="num">653.157</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Não</td><td>Sim</td><td>Não aplicável</td><td class="num">1.485,61</td><td class="num">6.265.662</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Não</td><td>Sim</td><td>Sim</td><td class="num">2.638,45</td><td class="num">3.309.340</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Não</td><td>Sim</td><td>Não</td><td class="num">1.844,30</td><td class="num">1.071.010</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Não</td><td>Não</td><td>Não aplicável</td><td class="num">919,12</td><td class="num">21.228.893</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Não</td><td>Não</td><td>Sim</td><td class="num">1.875,34</td><td class="num">1.754.147</td></tr>
+            <tr><td class="cat">Brasil (País)</td><td>Não</td><td>Não</td><td>Não</td><td class="num">1.444,16</td><td class="num">1.049.905</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="timing">
+        <span>⏱ Verificação de cache: 143ms</span>
+        <span>Geração da consulta: 55ms</span>
+        <span>Execução passo 1: 1s</span>
+        <span>Execução passo 2: 139ms</span>
+        <span>Indexação do resultado: 15ms</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

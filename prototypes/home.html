@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BME – Banco Multidimensional de Estatísticas</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --blue-900: #0c2340;
+    --blue-700: #1351b4;
+    --blue-500: #2670e8;
+    --blue-100: #dbe8fb;
+    --blue-50:  #edf3fe;
+    --gray-900: #1b1f27;
+    --gray-700: #3d4554;
+    --gray-500: #636978;
+    --gray-300: #c5c9d3;
+    --gray-100: #f0f1f3;
+    --gray-50:  #f8f9fb;
+    --white:    #ffffff;
+    --sidebar-w: 260px;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-50); color: var(--gray-900); display: flex; flex-direction: column; min-height: 100vh; }
+
+  /* ── Gov.br bar ── */
+  .govbar {
+    background: var(--blue-900);
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .govbar img { height: 16px; }
+  .govbar a { color: #a8c4f0; text-decoration: none; margin-left: auto; }
+
+  /* ── App header ── */
+  .appheader {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-300);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-badge {
+    background: var(--blue-700);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing: 1px;
+  }
+  .logo-text { font-size: 13px; color: var(--gray-500); line-height: 1.3; }
+  .logo-text strong { display: block; color: var(--gray-900); font-size: 14px; }
+
+  .header-search {
+    flex: 1;
+    max-width: 520px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .header-search input {
+    width: 100%;
+    padding: 8px 16px 8px 40px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 24px;
+    font-size: 14px;
+    background: var(--gray-100);
+    outline: none;
+    transition: border .2s, background .2s;
+  }
+  .header-search input:focus { border-color: var(--blue-500); background: var(--white); }
+  .header-search .icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--gray-500); font-size: 16px; }
+
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .btn { padding: 7px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; border: none; font-weight: 500; transition: all .15s; }
+  .btn-ghost { background: none; color: var(--gray-700); }
+  .btn-ghost:hover { background: var(--gray-100); }
+  .btn-primary { background: var(--blue-700); color: #fff; }
+  .btn-primary:hover { background: var(--blue-900); }
+
+  /* ── Layout ── */
+  .layout { display: flex; flex: 1; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--white);
+    border-right: 1px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    gap: 2px;
+    position: sticky;
+    top: 56px;
+    height: calc(100vh - 56px - 28px);
+    overflow-y: auto;
+  }
+  .sidebar-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .8px; margin-top: 8px; }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13.5px;
+    color: var(--gray-700);
+    cursor: pointer;
+    border-radius: 0;
+    transition: background .1s;
+    text-decoration: none;
+  }
+  .sidebar-item:hover { background: var(--gray-100); }
+  .sidebar-item.active { background: var(--blue-50); color: var(--blue-700); font-weight: 600; border-right: 3px solid var(--blue-700); }
+  .sidebar-item .ico { width: 18px; text-align: center; font-size: 16px; }
+  .sidebar-item .badge { margin-left: auto; background: var(--blue-100); color: var(--blue-700); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
+
+  .sidebar-new {
+    margin: 12px 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px;
+    border: 1.5px dashed var(--gray-300);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--blue-700);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .sidebar-new:hover { border-color: var(--blue-500); background: var(--blue-50); }
+
+  /* ── Main ── */
+  .main { flex: 1; padding: 32px 40px; overflow-y: auto; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, var(--blue-900) 0%, var(--blue-700) 100%);
+    border-radius: 16px;
+    padding: 48px 40px;
+    color: #fff;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    right: -60px;
+    top: -60px;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.05);
+  }
+  .hero h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .hero p { font-size: 15px; opacity: .85; margin-bottom: 28px; max-width: 520px; line-height: 1.6; }
+
+  .hero-search {
+    display: flex;
+    gap: 0;
+    max-width: 640px;
+    background: rgba(255,255,255,.12);
+    border: 1.5px solid rgba(255,255,255,.25);
+    border-radius: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+  }
+  .hero-search input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 14px 20px;
+    font-size: 15px;
+    color: #fff;
+    outline: none;
+  }
+  .hero-search input::placeholder { color: rgba(255,255,255,.6); }
+  .hero-search-btn {
+    background: #fff;
+    color: var(--blue-700);
+    border: none;
+    padding: 0 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+  }
+  .hero-search-btn:hover { background: var(--blue-100); }
+
+  .hero-tags { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .hero-tag {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.2);
+    color: rgba(255,255,255,.9);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .hero-tag:hover { background: rgba(255,255,255,.25); }
+
+  /* ── Section ── */
+  .section-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+  .section-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 20px; }
+
+  /* ── Official cards ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 40px; }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: box-shadow .15s, border-color .15s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); border-color: var(--blue-300, #93b8f5); }
+
+  .card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    width: fit-content;
+  }
+  .badge-official { background: #e6f0ff; color: var(--blue-700); }
+  .badge-censo { background: #fff3e0; color: #b45309; }
+  .badge-pnad { background: #f0fdf4; color: #166534; }
+  .badge-pof { background: #fdf4ff; color: #7e22ce; }
+
+  .card h3 { font-size: 14px; font-weight: 600; line-height: 1.4; }
+  .card p { font-size: 12.5px; color: var(--gray-500); line-height: 1.5; flex: 1; }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--gray-500);
+    border-top: 1px solid var(--gray-100);
+    padding-top: 10px;
+    margin-top: auto;
+  }
+  .card-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--gray-300); }
+
+  /* ── Research tree quick access ── */
+  .tree-section { margin-bottom: 40px; }
+  .tree-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .tree-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--white);
+    border: 1px solid var(--gray-300);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all .15s;
+    text-decoration: none;
+    color: var(--gray-700);
+  }
+  .tree-item:hover { background: var(--blue-50); border-color: var(--blue-500); color: var(--blue-700); }
+  .tree-item .ico { font-size: 18px; }
+  .tree-item .count { margin-left: auto; font-size: 11px; color: var(--gray-500); }
+</style>
+</head>
+<body>
+
+<!-- Gov.br bar -->
+<div class="govbar">
+  <span>🇧🇷</span>
+  <strong>BRASIL</strong>
+  <span style="margin-left:8px; opacity:.7">|</span>
+  <a href="#">Acesso à informação</a>
+  <a href="#" style="margin-left:16px">Participe</a>
+  <a href="#" style="margin-left:16px">Legislação</a>
+</div>
+
+<!-- App header -->
+<header class="appheader">
+  <a class="logo" href="#">
+    <span class="logo-badge">BME</span>
+    <span class="logo-text">
+      <strong>Banco Multidimensional</strong>
+      de Estatísticas · IBGE
+    </span>
+  </a>
+
+  <div class="header-search">
+    <span class="icon">🔍</span>
+    <input type="text" placeholder="Buscar pesquisas, variáveis ou temas…">
+  </div>
+
+  <div class="header-actions">
+    <button class="btn btn-ghost">Entrar</button>
+    <button class="btn btn-primary">Cadastrar</button>
+  </div>
+</header>
+
+<!-- Layout -->
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-new">
+      <span>＋</span> Nova consulta
+    </div>
+
+    <div class="sidebar-section">Menu</div>
+    <a class="sidebar-item active" href="home.html">
+      <span class="ico">🏠</span> Início
+    </a>
+    <a class="sidebar-item" href="#">
+      <span class="ico">🔍</span> Explorar pesquisas
+    </a>
+    <a class="sidebar-item" href="#">
+      <span class="ico">📋</span> Consultas oficiais IBGE
+      <span class="badge">24</span>
+    </a>
+
+    <div class="sidebar-section">Minha conta</div>
+    <a class="sidebar-item" href="#">
+      <span class="ico">📊</span> Minhas consultas
+    </a>
+    <a class="sidebar-item" href="#">
+      <span class="ico">⭐</span> Favoritos
+    </a>
+    <a class="sidebar-item" href="#">
+      <span class="ico">🔗</span> Compartilhados comigo
+    </a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>O que você quer analisar hoje?</h1>
+      <p>Explore microdados do IBGE com consultas agregadas. Descreva sua análise ou navegue pelas pesquisas disponíveis.</p>
+
+      <div class="hero-search">
+        <input type="text" placeholder="Ex: renda média por cor/raça nos municípios do Nordeste – Censo 2010…">
+        <button class="hero-search-btn">✦ Buscar com IA</button>
+      </div>
+
+      <div class="hero-tags">
+        <span class="hero-tag">Renda domiciliar</span>
+        <span class="hero-tag">Escolaridade por estado</span>
+        <span class="hero-tag">Domicílios por tipo</span>
+        <span class="hero-tag">Mortalidade infantil</span>
+        <span class="hero-tag">Saneamento básico</span>
+      </div>
+    </div>
+
+    <!-- Official queries -->
+    <div class="section-title">Consultas oficiais em destaque</div>
+    <div class="section-sub">Análises prontas elaboradas pelo IBGE — você pode visualizar e copiar para personalizar</div>
+    <div class="cards-grid">
+      <a class="card" href="query-builder.html">
+        <span class="card-badge badge-censo">📊 Censo 2010</span>
+        <h3>Distribuição de renda domiciliar per capita por raça e região</h3>
+        <p>Comparativo do rendimento médio mensal domiciliar por cor ou raça, agregado por Unidade da Federação.</p>
+        <div class="card-meta">
+          <span>5 variáveis</span><span class="dot"></span><span>UF · Brasil</span><span class="dot"></span><span>IBGE oficial</span>
+        </div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-badge badge-pnad">📈 PNAD 2022</span>
+        <h3>Taxa de desocupação por escolaridade e sexo</h3>
+        <p>Série histórica da população desocupada segmentada por nível de instrução e gênero.</p>
+        <div class="card-meta">
+          <span>4 variáveis</span><span class="dot"></span><span>Brasil</span><span class="dot"></span><span>IBGE oficial</span>
+        </div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-badge badge-oficial badge-official">⭐ Destaque</span>
+        <h3>Acesso a serviços de saneamento básico por município</h3>
+        <p>Percentual de domicílios com acesso a esgotamento sanitário, água encanada e coleta de lixo.</p>
+        <div class="card-meta">
+          <span>3 variáveis</span><span class="dot"></span><span>Município</span><span class="dot"></span><span>PNSB 2017</span>
+        </div>
+      </a>
+      <a class="card" href="#">
+        <span class="card-badge badge-pof">🧾 POF 2017–18</span>
+        <h3>Gastos familiares médios por categoria e faixa de renda</h3>
+        <p>Estrutura de gastos das famílias brasileiras segmentada por decil de renda e tipo de despesa.</p>
+        <div class="card-meta">
+          <span>6 variáveis</span><span class="dot"></span><span>Região · Brasil</span><span class="dot"></span><span>IBGE oficial</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Browse by research -->
+    <div class="tree-section">
+      <div class="section-title">Navegar por pesquisa</div>
+      <div class="section-sub">Acesse a estrutura completa de variáveis de cada levantamento</div>
+      <div class="tree-grid">
+        <a class="tree-item" href="query-builder.html">
+          <span class="ico">📂</span>
+          <span>Censo Demográfico 2010</span>
+          <span class="count">320 vars</span>
+        </a>
+        <a class="tree-item" href="#">
+          <span class="ico">📂</span>
+          <span>Censo Demográfico 2022</span>
+          <span class="count">290 vars</span>
+        </a>
+        <a class="tree-item" href="#">
+          <span class="ico">📂</span>
+          <span>PNAD Contínua</span>
+          <span class="count">180 vars</span>
+        </a>
+        <a class="tree-item" href="#">
+          <span class="ico">📂</span>
+          <span>POF 2017–18</span>
+          <span class="count">210 vars</span>
+        </a>
+        <a class="tree-item" href="#">
+          <span class="ico">📂</span>
+          <span>AMS – Assist. Médico-Sanitária</span>
+          <span class="count">95 vars</span>
+        </a>
+        <a class="tree-item" href="#">
+          <span class="ico">📂</span>
+          <span>MUNIC</span>
+          <span class="count">140 vars</span>
+        </a>
+        <a class="tree-item" href="#">
+          <span class="ico">📂</span>
+          <span>PNSB</span>
+          <span class="count">88 vars</span>
+        </a>
+        <a class="tree-item" href="#">
+          <span class="ico">📂</span>
+          <span>Estimativas Populacionais</span>
+          <span class="count">12 vars</span>
+        </a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
