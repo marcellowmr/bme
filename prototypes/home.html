@@ -5,466 +5,369 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BME – Banco Multidimensional de Estatísticas</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  :root {
-    --blue-900: #0c2340;
-    --blue-700: #1351b4;
-    --blue-500: #2670e8;
-    --blue-100: #dbe8fb;
-    --blue-50:  #edf3fe;
-    --gray-900: #1b1f27;
-    --gray-700: #3d4554;
-    --gray-500: #636978;
-    --gray-300: #c5c9d3;
-    --gray-100: #f0f1f3;
-    --gray-50:  #f8f9fb;
-    --white:    #ffffff;
-    --sidebar-w: 260px;
-  }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-50); color: var(--gray-900); display: flex; flex-direction: column; min-height: 100vh; }
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f7f6f3;
+  --surface:#ffffff;
+  --surface-2:#efede8;
+  --border:rgba(0,0,0,.07);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.09),0 0 0 1px rgba(0,0,0,.04);
+  --blue:#1351b4;
+  --blue-dk:#0c2340;
+  --blue-lt:#eff4ff;
+  --blue-mid:#c7d9f8;
+  --text:#18181b;
+  --text-2:#52525b;
+  --text-3:#a0a09a;
+  --warm-gray:#78746e;
+  --font:'Segoe UI',system-ui,sans-serif;
+  --r:12px;
+  --sidebar:52px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh;}
 
-  /* ── Gov.br bar ── */
-  .govbar {
-    background: var(--blue-900);
-    color: #fff;
-    font-size: 11px;
-    padding: 4px 24px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .govbar img { height: 16px; }
-  .govbar a { color: #a8c4f0; text-decoration: none; margin-left: auto; }
+/* gov bar */
+.govbar{background:var(--blue-dk);color:#fff;font-size:11px;padding:5px 20px;display:flex;align-items:center;gap:12px;letter-spacing:.2px;}
+.govbar a{color:#93b8f0;text-decoration:none;font-size:11px;}
+.govbar a:hover{text-decoration:underline;}
+.gov-sep{opacity:.3;}
 
-  /* ── App header ── */
-  .appheader {
-    background: var(--white);
-    border-bottom: 1px solid var(--gray-300);
-    padding: 0 24px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
-  }
-  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .logo-badge {
-    background: var(--blue-700);
-    color: #fff;
-    font-weight: 800;
-    font-size: 15px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    letter-spacing: 1px;
-  }
-  .logo-text { font-size: 13px; color: var(--gray-500); line-height: 1.3; }
-  .logo-text strong { display: block; color: var(--gray-900); font-size: 14px; }
+/* header */
+.appheader{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  height:54px;padding:0 12px 0 16px;
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+.logo-badge{background:var(--blue);color:#fff;font-weight:800;font-size:12px;padding:3px 7px;border-radius:6px;letter-spacing:1.5px;}
+.logo-sub{font-size:11px;color:var(--text-3);display:none;}
+@media(min-width:640px){.logo-sub{display:block;}}
 
-  .header-search {
-    flex: 1;
-    max-width: 520px;
-    margin: 0 auto;
-    position: relative;
-  }
-  .header-search input {
-    width: 100%;
-    padding: 8px 16px 8px 40px;
-    border: 1.5px solid var(--gray-300);
-    border-radius: 24px;
-    font-size: 14px;
-    background: var(--gray-100);
-    outline: none;
-    transition: border .2s, background .2s;
-  }
-  .header-search input:focus { border-color: var(--blue-500); background: var(--white); }
-  .header-search .icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--gray-500); font-size: 16px; }
+.search-wrap{flex:1;max-width:480px;margin:0 auto;}
+.search-box{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg);
+  border:1.5px solid var(--border);
+  border-radius:24px;padding:7px 16px;
+  transition:border .15s,box-shadow .15s;cursor:text;
+}
+.search-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(19,81,180,.1);background:var(--surface);}
+.search-box svg{flex-shrink:0;color:var(--text-3);width:15px;height:15px;}
+.search-box input{border:none;background:transparent;font-size:13.5px;color:var(--text);outline:none;width:100%;}
+.search-box input::placeholder{color:var(--text-3);}
 
-  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-  .btn { padding: 7px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; border: none; font-weight: 500; transition: all .15s; }
-  .btn-ghost { background: none; color: var(--gray-700); }
-  .btn-ghost:hover { background: var(--gray-100); }
-  .btn-primary { background: var(--blue-700); color: #fff; }
-  .btn-primary:hover { background: var(--blue-900); }
+.header-right{display:flex;align-items:center;gap:6px;margin-left:auto;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .12s;}
+.btn-ghost{background:none;color:var(--text-2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:var(--blue-dk);}
 
-  /* ── Layout ── */
-  .layout { display: flex; flex: 1; }
+/* layout */
+.layout{display:flex;flex:1;}
 
-  /* ── Sidebar ── */
-  .sidebar {
-    width: var(--sidebar-w);
-    background: var(--white);
-    border-right: 1px solid var(--gray-300);
-    display: flex;
-    flex-direction: column;
-    padding: 16px 0;
-    gap: 2px;
-    position: sticky;
-    top: 56px;
-    height: calc(100vh - 56px - 28px);
-    overflow-y: auto;
-  }
-  .sidebar-section { padding: 8px 16px 4px; font-size: 10px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .8px; margin-top: 8px; }
-  .sidebar-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 20px;
-    font-size: 13.5px;
-    color: var(--gray-700);
-    cursor: pointer;
-    border-radius: 0;
-    transition: background .1s;
-    text-decoration: none;
-  }
-  .sidebar-item:hover { background: var(--gray-100); }
-  .sidebar-item.active { background: var(--blue-50); color: var(--blue-700); font-weight: 600; border-right: 3px solid var(--blue-700); }
-  .sidebar-item .ico { width: 18px; text-align: center; font-size: 16px; }
-  .sidebar-item .badge { margin-left: auto; background: var(--blue-100); color: var(--blue-700); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
+/* sidebar */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 0;gap:2px;
+  position:sticky;top:54px;height:calc(100vh - 54px - 26px);
+  overflow:hidden;
+}
+.s-ico{
+  width:38px;height:38px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;color:var(--warm-gray);
+  text-decoration:none;transition:background .1s,color .1s;
+  position:relative;
+}
+.s-ico:hover{background:var(--bg);color:var(--text);}
+.s-ico.active{background:var(--blue-lt);color:var(--blue);}
+.s-divider{width:24px;height:1px;background:var(--border);margin:4px 0;}
 
-  .sidebar-new {
-    margin: 12px 16px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 9px;
-    border: 1.5px dashed var(--gray-300);
-    border-radius: 8px;
-    font-size: 13px;
-    color: var(--blue-700);
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .sidebar-new:hover { border-color: var(--blue-500); background: var(--blue-50); }
+/* new query btn */
+.s-new{
+  width:36px;height:36px;border-radius:9px;
+  background:var(--blue);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;margin-bottom:6px;
+  box-shadow:0 2px 8px rgba(19,81,180,.3);
+  transition:all .12s;text-decoration:none;
+  flex-shrink:0;
+}
+.s-new:hover{background:var(--blue-dk);transform:scale(1.05);}
 
-  /* ── Main ── */
-  .main { flex: 1; padding: 32px 40px; overflow-y: auto; }
+/* tooltip */
+.s-ico[title]:hover::after{
+  content:attr(title);
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:var(--text);color:#fff;font-size:11px;white-space:nowrap;
+  padding:4px 8px;border-radius:5px;pointer-events:none;z-index:200;
+}
 
-  /* ── Hero ── */
-  .hero {
-    background: linear-gradient(135deg, var(--blue-900) 0%, var(--blue-700) 100%);
-    border-radius: 16px;
-    padding: 48px 40px;
-    color: #fff;
-    margin-bottom: 40px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::after {
-    content: '';
-    position: absolute;
-    right: -60px;
-    top: -60px;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.05);
-  }
-  .hero h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
-  .hero p { font-size: 15px; opacity: .85; margin-bottom: 28px; max-width: 520px; line-height: 1.6; }
+/* main */
+.main{flex:1;padding:32px 32px 48px;max-width:1100px;overflow:auto;}
 
-  .hero-search {
-    display: flex;
-    gap: 0;
-    max-width: 640px;
-    background: rgba(255,255,255,.12);
-    border: 1.5px solid rgba(255,255,255,.25);
-    border-radius: 12px;
-    overflow: hidden;
-    backdrop-filter: blur(6px);
-  }
-  .hero-search input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    padding: 14px 20px;
-    font-size: 15px;
-    color: #fff;
-    outline: none;
-  }
-  .hero-search input::placeholder { color: rgba(255,255,255,.6); }
-  .hero-search-btn {
-    background: #fff;
-    color: var(--blue-700);
-    border: none;
-    padding: 0 24px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background .15s;
-  }
-  .hero-search-btn:hover { background: var(--blue-100); }
+/* hero */
+.hero{
+  background:linear-gradient(140deg,var(--blue-dk) 0%,var(--blue) 100%);
+  border-radius:18px;padding:44px 40px 40px;color:#fff;
+  margin-bottom:40px;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;right:-80px;top:-80px;
+  width:340px;height:340px;border-radius:50%;
+  background:rgba(255,255,255,.04);
+}
+.hero h1{font-size:24px;font-weight:700;margin-bottom:6px;line-height:1.3;}
+.hero p{font-size:14px;opacity:.8;margin-bottom:28px;max-width:480px;line-height:1.6;}
 
-  .hero-tags { margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .hero-tag {
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.2);
-    color: rgba(255,255,255,.9);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .hero-tag:hover { background: rgba(255,255,255,.25); }
+.hero-search{
+  display:flex;max-width:620px;
+  background:rgba(255,255,255,.13);
+  border:1.5px solid rgba(255,255,255,.22);
+  border-radius:14px;overflow:hidden;
+  backdrop-filter:blur(8px);
+}
+.hero-search input{
+  flex:1;background:transparent;border:none;
+  padding:14px 18px;font-size:14.5px;color:#fff;outline:none;
+}
+.hero-search input::placeholder{color:rgba(255,255,255,.55);}
+.hero-search-btn{
+  background:rgba(255,255,255,.15);color:#fff;
+  border:none;border-left:1px solid rgba(255,255,255,.18);
+  padding:0 20px;font-size:13.5px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:7px;white-space:nowrap;
+  transition:background .15s;
+}
+.hero-search-btn:hover{background:rgba(255,255,255,.25);}
+.ai-star{font-size:16px;}
 
-  /* ── Section ── */
-  .section-title {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: 4px;
-  }
-  .section-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 20px; }
+.hero-chips{margin-top:14px;display:flex;gap:7px;flex-wrap:wrap;}
+.h-chip{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.88);border-radius:20px;padding:4px 12px;
+  font-size:12px;cursor:pointer;transition:background .12s;
+}
+.h-chip:hover{background:rgba(255,255,255,.22);}
 
-  /* ── Official cards ── */
-  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 40px; }
+/* sections */
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;}
+.sec-title{font-size:16px;font-weight:700;}
+.sec-sub{font-size:13px;color:var(--text-3);}
+.sec-link{font-size:13px;color:var(--blue);text-decoration:none;margin-left:auto;}
+.sec-link:hover{text-decoration:underline;}
 
-  .card {
-    background: var(--white);
-    border: 1px solid var(--gray-300);
-    border-radius: 12px;
-    padding: 20px;
-    cursor: pointer;
-    transition: box-shadow .15s, border-color .15s;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); border-color: var(--blue-300, #93b8f5); }
+/* cards grid */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-bottom:40px;}
+.card{
+  background:var(--surface);border-radius:var(--r);
+  padding:20px;cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transition:box-shadow .15s,transform .12s;
+  text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;gap:10px;
+}
+.card:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
 
-  .card-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 6px;
-    width: fit-content;
-  }
-  .badge-official { background: #e6f0ff; color: var(--blue-700); }
-  .badge-censo { background: #fff3e0; color: #b45309; }
-  .badge-pnad { background: #f0fdf4; color: #166534; }
-  .badge-pof { background: #fdf4ff; color: #7e22ce; }
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;width:fit-content;}
+.tag-censo{background:#fff3e0;color:#92400e;}
+.tag-pnad{background:#ecfdf5;color:#065f46;}
+.tag-pof{background:#faf5ff;color:#5b21b6;}
+.tag-ibge{background:var(--blue-lt);color:var(--blue);}
 
-  .card h3 { font-size: 14px; font-weight: 600; line-height: 1.4; }
-  .card p { font-size: 12.5px; color: var(--gray-500); line-height: 1.5; flex: 1; }
+.card h3{font-size:13.5px;font-weight:600;line-height:1.4;color:var(--text);}
+.card p{font-size:12.5px;color:var(--text-2);line-height:1.5;flex:1;}
+.card-meta{
+  display:flex;align-items:center;gap:6px;
+  font-size:11.5px;color:var(--text-3);
+  border-top:1px solid var(--border);
+  padding-top:10px;margin-top:auto;
+}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--text-3);}
 
-  .card-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11.5px;
-    color: var(--gray-500);
-    border-top: 1px solid var(--gray-100);
-    padding-top: 10px;
-    margin-top: auto;
-  }
-  .card-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--gray-300); }
+/* research grid */
+.research-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:48px;}
+.r-item{
+  display:flex;align-items:center;gap:9px;
+  padding:11px 14px;background:var(--surface);
+  border-radius:10px;box-shadow:var(--shadow-sm);
+  cursor:pointer;font-size:13px;color:var(--text-2);
+  text-decoration:none;transition:all .12s;
+}
+.r-item:hover{box-shadow:var(--shadow);color:var(--blue);}
+.r-item svg{color:var(--text-3);flex-shrink:0;width:16px;height:16px;}
+.r-item:hover svg{color:var(--blue);}
+.r-count{margin-left:auto;font-size:11px;color:var(--text-3);}
 
-  /* ── Research tree quick access ── */
-  .tree-section { margin-bottom: 40px; }
-  .tree-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-  .tree-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: var(--white);
-    border: 1px solid var(--gray-300);
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all .15s;
-    text-decoration: none;
-    color: var(--gray-700);
-  }
-  .tree-item:hover { background: var(--blue-50); border-color: var(--blue-500); color: var(--blue-700); }
-  .tree-item .ico { font-size: 18px; }
-  .tree-item .count { margin-left: auto; font-size: 11px; color: var(--gray-500); }
+/* mobile */
+@media(max-width:600px){
+  .hero{padding:28px 20px 24px;}
+  .hero h1{font-size:19px;}
+  .main{padding:20px 16px 40px;}
+  .hero-search-btn span{display:none;}
+}
 </style>
 </head>
 <body>
 
-<!-- Gov.br bar -->
 <div class="govbar">
-  <span>🇧🇷</span>
-  <strong>BRASIL</strong>
-  <span style="margin-left:8px; opacity:.7">|</span>
+  <span>🇧🇷</span><strong>BRASIL</strong>
+  <span class="gov-sep">|</span>
   <a href="#">Acesso à informação</a>
-  <a href="#" style="margin-left:16px">Participe</a>
-  <a href="#" style="margin-left:16px">Legislação</a>
+  <a href="#">Participe</a>
+  <a href="#">Legislação</a>
 </div>
 
-<!-- App header -->
 <header class="appheader">
-  <a class="logo" href="#">
+  <a class="logo" href="home.html">
     <span class="logo-badge">BME</span>
-    <span class="logo-text">
-      <strong>Banco Multidimensional</strong>
-      de Estatísticas · IBGE
-    </span>
+    <span class="logo-sub">Banco Multidimensional de Estatísticas</span>
   </a>
 
-  <div class="header-search">
-    <span class="icon">🔍</span>
-    <input type="text" placeholder="Buscar pesquisas, variáveis ou temas…">
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 3.5 3.5"/></svg>
+      <input type="text" placeholder="Buscar variáveis, pesquisas ou temas…">
+    </div>
   </div>
 
-  <div class="header-actions">
+  <div class="header-right">
     <button class="btn btn-ghost">Entrar</button>
-    <button class="btn btn-primary">Cadastrar</button>
+    <button class="btn btn-blue">Cadastrar</button>
   </div>
 </header>
 
-<!-- Layout -->
 <div class="layout">
-
-  <!-- Sidebar -->
   <nav class="sidebar">
-    <div class="sidebar-new">
-      <span>＋</span> Nova consulta
-    </div>
+    <a class="s-new" href="query-builder.html" title="Nova consulta">+</a>
 
-    <div class="sidebar-section">Menu</div>
-    <a class="sidebar-item active" href="home.html">
-      <span class="ico">🏠</span> Início
+    <a class="s-ico active" href="home.html" title="Início">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2L2 9h2v9h5v-5h2v5h5V9h2L10 2z"/></svg>
     </a>
-    <a class="sidebar-item" href="#">
-      <span class="ico">🔍</span> Explorar pesquisas
+    <a class="s-ico" href="#" title="Explorar pesquisas">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="7" height="7" rx="1.5"/><rect x="11" y="3" width="7" height="7" rx="1.5"/><rect x="2" y="12" width="7" height="6" rx="1.5"/><rect x="11" y="12" width="7" height="6" rx="1.5"/></svg>
     </a>
-    <a class="sidebar-item" href="#">
-      <span class="ico">📋</span> Consultas oficiais IBGE
-      <span class="badge">24</span>
+    <a class="s-ico" href="#" title="Consultas IBGE">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12M4 8h8M4 12h10M4 16h6"/></svg>
     </a>
 
-    <div class="sidebar-section">Minha conta</div>
-    <a class="sidebar-item" href="#">
-      <span class="ico">📊</span> Minhas consultas
+    <div class="s-divider"></div>
+
+    <a class="s-ico" href="#" title="Minhas consultas">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 8h6M7 11h4"/></svg>
     </a>
-    <a class="sidebar-item" href="#">
-      <span class="ico">⭐</span> Favoritos
+    <a class="s-ico" href="#" title="Favoritos">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="10,2 12.5,7.5 18,8.3 14,12.2 15,18 10,15.2 5,18 6,12.2 2,8.3 7.5,7.5"/></svg>
     </a>
-    <a class="sidebar-item" href="#">
-      <span class="ico">🔗</span> Compartilhados comigo
+    <a class="s-ico" href="#" title="Compartilhados comigo">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="10" r="2.5"/><circle cx="14" cy="6" r="2.5"/><circle cx="14" cy="14" r="2.5"/><line x1="8.4" y1="8.9" x2="11.6" y2="7.1"/><line x1="8.4" y1="11.1" x2="11.6" y2="12.9"/></svg>
     </a>
   </nav>
 
-  <!-- Main content -->
   <main class="main">
 
-    <!-- Hero -->
     <div class="hero">
       <h1>O que você quer analisar hoje?</h1>
-      <p>Explore microdados do IBGE com consultas agregadas. Descreva sua análise ou navegue pelas pesquisas disponíveis.</p>
-
+      <p>Explore microdados do IBGE com resultados agregados. Descreva sua análise ou navegue pelas pesquisas.</p>
       <div class="hero-search">
-        <input type="text" placeholder="Ex: renda média por cor/raça nos municípios do Nordeste – Censo 2010…">
-        <button class="hero-search-btn">✦ Buscar com IA</button>
+        <input type="text" placeholder="Ex: renda média por raça e escolaridade no Nordeste – Censo 2010…">
+        <button class="hero-search-btn" onclick="window.location='ai-search.html'">
+          <span class="ai-star">✦</span><span>Buscar com IA</span>
+        </button>
       </div>
-
-      <div class="hero-tags">
-        <span class="hero-tag">Renda domiciliar</span>
-        <span class="hero-tag">Escolaridade por estado</span>
-        <span class="hero-tag">Domicílios por tipo</span>
-        <span class="hero-tag">Mortalidade infantil</span>
-        <span class="hero-tag">Saneamento básico</span>
+      <div class="hero-chips">
+        <span class="h-chip">Renda domiciliar</span>
+        <span class="h-chip">Escolaridade por UF</span>
+        <span class="h-chip">Domicílios por tipo</span>
+        <span class="h-chip">Saneamento básico</span>
+        <span class="h-chip">Mortalidade infantil</span>
       </div>
     </div>
 
-    <!-- Official queries -->
-    <div class="section-title">Consultas oficiais em destaque</div>
-    <div class="section-sub">Análises prontas elaboradas pelo IBGE — você pode visualizar e copiar para personalizar</div>
-    <div class="cards-grid">
+    <div class="sec-head">
+      <span class="sec-title">Consultas em destaque</span>
+      <span class="sec-sub">Elaboradas pelo IBGE · copie e personalize</span>
+      <a class="sec-link" href="#">Ver todas →</a>
+    </div>
+    <div class="cards">
       <a class="card" href="query-builder.html">
-        <span class="card-badge badge-censo">📊 Censo 2010</span>
-        <h3>Distribuição de renda domiciliar per capita por raça e região</h3>
-        <p>Comparativo do rendimento médio mensal domiciliar por cor ou raça, agregado por Unidade da Federação.</p>
-        <div class="card-meta">
-          <span>5 variáveis</span><span class="dot"></span><span>UF · Brasil</span><span class="dot"></span><span>IBGE oficial</span>
-        </div>
+        <span class="tag tag-censo">📊 Censo 2010</span>
+        <h3>Distribuição de renda por cor/raça e região</h3>
+        <p>Rendimento médio domiciliar per capita segmentado por cor ou raça, cruzado com Unidade da Federação.</p>
+        <div class="card-meta">5 variáveis<span class="dot"></span>UF · Brasil<span class="dot"></span>IBGE oficial</div>
       </a>
-      <a class="card" href="#">
-        <span class="card-badge badge-pnad">📈 PNAD 2022</span>
+      <a class="card" href="results-chart.html">
+        <span class="tag tag-pnad">📈 PNAD 2022</span>
         <h3>Taxa de desocupação por escolaridade e sexo</h3>
-        <p>Série histórica da população desocupada segmentada por nível de instrução e gênero.</p>
-        <div class="card-meta">
-          <span>4 variáveis</span><span class="dot"></span><span>Brasil</span><span class="dot"></span><span>IBGE oficial</span>
-        </div>
+        <p>População desocupada segmentada por nível de instrução e gênero, com série histórica disponível.</p>
+        <div class="card-meta">4 variáveis<span class="dot"></span>Brasil<span class="dot"></span>IBGE oficial</div>
       </a>
       <a class="card" href="#">
-        <span class="card-badge badge-oficial badge-official">⭐ Destaque</span>
-        <h3>Acesso a serviços de saneamento básico por município</h3>
-        <p>Percentual de domicílios com acesso a esgotamento sanitário, água encanada e coleta de lixo.</p>
-        <div class="card-meta">
-          <span>3 variáveis</span><span class="dot"></span><span>Município</span><span class="dot"></span><span>PNSB 2017</span>
-        </div>
+        <span class="tag tag-ibge">⭐ Destaque</span>
+        <h3>Acesso a saneamento básico por município</h3>
+        <p>Percentual de domicílios com esgoto, água encanada e coleta de lixo por município brasileiro.</p>
+        <div class="card-meta">3 variáveis<span class="dot"></span>Município<span class="dot"></span>PNSB 2017</div>
       </a>
       <a class="card" href="#">
-        <span class="card-badge badge-pof">🧾 POF 2017–18</span>
-        <h3>Gastos familiares médios por categoria e faixa de renda</h3>
-        <p>Estrutura de gastos das famílias brasileiras segmentada por decil de renda e tipo de despesa.</p>
-        <div class="card-meta">
-          <span>6 variáveis</span><span class="dot"></span><span>Região · Brasil</span><span class="dot"></span><span>IBGE oficial</span>
-        </div>
+        <span class="tag tag-pof">🧾 POF 2017–18</span>
+        <h3>Gastos familiares por categoria e faixa de renda</h3>
+        <p>Estrutura de despesas das famílias brasileiras por decil de renda e tipo de gasto.</p>
+        <div class="card-meta">6 variáveis<span class="dot"></span>Região · Brasil<span class="dot"></span>IBGE oficial</div>
       </a>
     </div>
 
-    <!-- Browse by research -->
-    <div class="tree-section">
-      <div class="section-title">Navegar por pesquisa</div>
-      <div class="section-sub">Acesse a estrutura completa de variáveis de cada levantamento</div>
-      <div class="tree-grid">
-        <a class="tree-item" href="query-builder.html">
-          <span class="ico">📂</span>
-          <span>Censo Demográfico 2010</span>
-          <span class="count">320 vars</span>
-        </a>
-        <a class="tree-item" href="#">
-          <span class="ico">📂</span>
-          <span>Censo Demográfico 2022</span>
-          <span class="count">290 vars</span>
-        </a>
-        <a class="tree-item" href="#">
-          <span class="ico">📂</span>
-          <span>PNAD Contínua</span>
-          <span class="count">180 vars</span>
-        </a>
-        <a class="tree-item" href="#">
-          <span class="ico">📂</span>
-          <span>POF 2017–18</span>
-          <span class="count">210 vars</span>
-        </a>
-        <a class="tree-item" href="#">
-          <span class="ico">📂</span>
-          <span>AMS – Assist. Médico-Sanitária</span>
-          <span class="count">95 vars</span>
-        </a>
-        <a class="tree-item" href="#">
-          <span class="ico">📂</span>
-          <span>MUNIC</span>
-          <span class="count">140 vars</span>
-        </a>
-        <a class="tree-item" href="#">
-          <span class="ico">📂</span>
-          <span>PNSB</span>
-          <span class="count">88 vars</span>
-        </a>
-        <a class="tree-item" href="#">
-          <span class="ico">📂</span>
-          <span>Estimativas Populacionais</span>
-          <span class="count">12 vars</span>
-        </a>
-      </div>
+    <div class="sec-head">
+      <span class="sec-title">Navegar por pesquisa</span>
+      <span class="sec-sub">Acesse a estrutura completa de variáveis</span>
+    </div>
+    <div class="research-grid">
+      <a class="r-item" href="query-builder.html">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        Censo Demográfico 2010
+        <span class="r-count">320</span>
+      </a>
+      <a class="r-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        Censo Demográfico 2022
+        <span class="r-count">290</span>
+      </a>
+      <a class="r-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        PNAD Contínua
+        <span class="r-count">180</span>
+      </a>
+      <a class="r-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        POF 2017–18
+        <span class="r-count">210</span>
+      </a>
+      <a class="r-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        AMS – Assist. Médico-Sanitária
+        <span class="r-count">95</span>
+      </a>
+      <a class="r-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        MUNIC
+        <span class="r-count">140</span>
+      </a>
+      <a class="r-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        PNSB
+        <span class="r-count">88</span>
+      </a>
+      <a class="r-item" href="#">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z"/></svg>
+        Estimativas Populacionais
+        <span class="r-count">12</span>
+      </a>
     </div>
 
   </main>
