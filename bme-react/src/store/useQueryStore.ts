@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Variable, SelectedMeasure, GeoFilter, QueryResult, QueryConfig, User } from '../types'
+import type { Variable, VariableGroup, SelectedMeasure, GeoFilter, QueryResult, QueryConfig, User } from '../types'
 import { runQuery } from '../data/results'
 
 interface QueryStore {
@@ -26,6 +26,10 @@ interface QueryStore {
   // Geo
   geoFilter: GeoFilter
   setGeoFilter: (g: GeoFilter) => void
+
+  // Meta panel
+  metaItem: Variable | VariableGroup | null
+  setMetaItem: (item: Variable | VariableGroup | null) => void
 
   // Execution
   result: QueryResult | null
@@ -56,6 +60,8 @@ export const useQueryStore = create<QueryStore>((set, get) => ({
   result: null,
   isRunning: false,
   error: null,
+  metaItem: null,
+  setMetaItem: (metaItem) => set({ metaItem }),
 
   addToRows: (v) => set(s => ({
     rows: s.rows.find(r => r.id === v.id) ? s.rows : [...s.rows, v]

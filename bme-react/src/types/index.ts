@@ -7,13 +7,18 @@ export interface Variable {
   label: string
   type: VariableType
   categories?: { value: string; label: string }[]
-  aggregations?: string[]   // 'Soma' | 'Média' | 'Contagem' | 'Mediana'
+  aggregations?: string[]
+  description?: string
+  notes?: string
+  source?: string
 }
 
 export interface VariableGroup {
   id: string
   label: string
   children: (Variable | VariableGroup)[]
+  description?: string
+  notes?: string
 }
 
 export function isVariable(node: Variable | VariableGroup): node is Variable {

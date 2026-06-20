@@ -6,6 +6,7 @@ import Sidebar from '../components/layout/Sidebar'
 import VariableTree from '../components/query/VariableTree'
 import AxesComposer from '../components/query/AxesComposer'
 import GeoBar from '../components/query/GeoBar'
+import MetaPanel from '../components/query/MetaPanel'
 import ResultTable from '../components/query/ResultTable'
 import ResultChart from '../components/query/ResultChart'
 import { useQueryStore } from '../store/useQueryStore'
@@ -20,6 +21,8 @@ export default function QueryBuilderPage() {
   const isRunning = useQueryStore(s => s.isRunning)
   const error = useQueryStore(s => s.error)
   const resetQuery = useQueryStore(s => s.resetQuery)
+  const metaItem = useQueryStore(s => s.metaItem)
+  const setMetaItem = useQueryStore(s => s.setMetaItem)
 
   const [research, setResearch] = useState<Research | null>(null)
   const [viewTab, setViewTab] = useState<ViewTab>('table')
@@ -91,8 +94,13 @@ export default function QueryBuilderPage() {
           <span className="text-[9px]">{treeOpen ? '‹' : '›'}</span>
         </button>
 
-        {/* Main area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Meta panel */}
+        {metaItem && (
+          <MetaPanel item={metaItem} onClose={() => setMetaItem(null)} />
+        )}
+
+        {/* Main area — click anywhere here closes the meta panel */}
+        <div className="flex-1 flex flex-col overflow-hidden" onClick={() => metaItem && setMetaItem(null)}>
           <GeoBar />
           <AxesComposer />
 

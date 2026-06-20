@@ -4,6 +4,32 @@ import type { Variable, VariableGroup } from '../../types'
 import { isVariable } from '../../types'
 import { useQueryStore } from '../../store/useQueryStore'
 
+function InfoBtn({ item, className }: { item: Variable | VariableGroup; className?: string }) {
+  const metaItem = useQueryStore(s => s.metaItem)
+  const setMetaItem = useQueryStore(s => s.setMetaItem)
+  const isActive = metaItem?.id === item.id
+
+  if (!item.description && !item.notes && !(isVariable(item) && (item.source || item.categories?.length || item.aggregations?.length))) {
+    return null
+  }
+
+  return (
+    <button
+      onClick={e => { e.stopPropagation(); setMetaItem(isActive ? null : item) }}
+      title="Ver metainformação"
+      className={clsx(
+        'w-5 h-5 rounded flex items-center justify-center text-[11px] leading-none border-none cursor-pointer transition-all flex-shrink-0',
+        isActive
+          ? 'bg-blue text-white'
+          : 'bg-transparent text-warm-3 hover:bg-blue-lt hover:text-blue opacity-0 group-hover:opacity-100',
+        className
+      )}
+    >
+      ⓘ
+    </button>
+  )
+}
+
 interface Props { groups: VariableGroup[] }
 
 export default function VariableTree({ groups }: Props) {
@@ -54,19 +80,21 @@ export default function VariableTree({ groups }: Props) {
 function GroupNode({ group, depth, expandByDefault }: { group: VariableGroup; depth: number; expandByDefault: boolean }) {
   const [open, setOpen] = useState(depth === 0 || expandByDefault)
   return (
-    <div>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className={clsx(
-          'w-full flex items-center gap-[5px] px-3 py-[5px] text-[12.5px] text-warm-2 hover:bg-bg transition-colors cursor-pointer border-none bg-transparent font-[inherit] text-left',
-          depth > 0 && 'pl-5'
-        )}
+    <div className="group">
+      <div
+        className="flex items-center gap-[5px] pr-2 text-[12.5px] text-warm-2 hover:bg-bg transition-colors"
         style={{ paddingLeft: 12 + depth * 14 }}
       >
-        <span className="text-[9px] text-warm-3 w-3 flex-shrink-0">{open ? '▼' : '▶'}</span>
-        <span className="text-[13px]">📁</span>
-        <span className="flex-1 text-left">{group.label}</span>
-      </button>
+        <button
+          onClick={() => setOpen(o => !o)}
+          className="flex-1 flex items-center gap-[5px] py-[5px] cursor-pointer border-none bg-transparent font-[inherit] text-left text-inherit min-w-0"
+        >
+          <span className="text-[9px] text-warm-3 w-3 flex-shrink-0">{open ? '▼' : '▶'}</span>
+          <span className="text-[13px]">📁</span>
+          <span className="flex-1 text-left truncate">{group.label}</span>
+        </button>
+        <InfoBtn item={group} />
+      </div>
       {open && (
         <div>
           {group.children.map(child =>
@@ -110,13 +138,14 @@ function VariableLeaf({ variable, depth }: { variable: Variable; depth: number }
     >
       <span className="w-3 flex-shrink-0" />
       <span className="text-[13px]">📄</span>
-      <span className="flex-1 leading-tight">{variable.label}</span>
+      <span className="flex-1 leading-tight min-w-0 truncate">{variable.label}</span>
       <span className={clsx(
         'text-[10px] font-semibold px-[5px] py-[1px] rounded flex-shrink-0',
         variable.type === 'categorical' ? 'bg-amb-lt text-amb' : 'bg-blue-lt text-blue'
       )}>
         {variable.type === 'categorical' ? 'Cat' : 'Num'}
       </span>
+      <InfoBtn item={variable} />
       {!selected && (
         <button
           onClick={handleAdd}
