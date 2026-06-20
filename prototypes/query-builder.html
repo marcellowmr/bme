@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construtor de Consulta – BME</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f7f6f3;--surface:#ffffff;--surface-2:#efede8;
+  --border:rgba(0,0,0,.07);--border-2:rgba(0,0,0,.12);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.09),0 0 0 1px rgba(0,0,0,.04);
+  --blue:#1351b4;--blue-dk:#0c2340;--blue-lt:#eff4ff;--blue-mid:#c7d9f8;
+  --green:#166534;--green-lt:#f0fdf4;--green-mid:#bbf7d0;
+  --amber:#92400e;--amber-lt:#fff3e0;--amber-mid:#fcd34d;
+  --text:#18181b;--text-2:#52525b;--text-3:#a0a09a;--warm-gray:#78746e;
+  --font:'Segoe UI',system-ui,sans-serif;--r:12px;
+  --sidebar:52px;--panel:300px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+.govbar{background:var(--blue-dk);color:#fff;font-size:11px;padding:5px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.govbar a{color:#93b8f0;text-decoration:none;}
+
+.appheader{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  height:52px;padding:0 12px;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-badge{background:var(--blue);color:#fff;font-weight:800;font-size:12px;padding:3px 7px;border-radius:6px;letter-spacing:1.5px;}
+.breadcrumb{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-3);}
+.breadcrumb a{color:var(--blue);text-decoration:none;}
+.breadcrumb a:hover{text-decoration:underline;}
+.bc-sep{color:var(--border);font-size:16px;}
+.bc-cur{color:var(--text-2);font-weight:500;}
+.h-actions{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;border:none;transition:all .12s;}
+.btn-ghost{background:none;color:var(--text-2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg);}
+.btn-run{background:var(--green);color:#fff;padding:7px 18px;font-size:13px;}
+.btn-run:hover{filter:brightness(1.15);}
+.btn-run:disabled{background:var(--text-3);cursor:not-allowed;}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;}
+
+/* layout */
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* thin sidebar */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 0;gap:2px;overflow:hidden;
+}
+.s-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--warm-gray);text-decoration:none;transition:all .1s;position:relative;}
+.s-ico:hover{background:var(--bg);color:var(--text);}
+.s-ico.active{background:var(--blue-lt);color:var(--blue);}
+.s-ico[title]:hover::after{content:attr(title);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);background:#1c1b1a;color:#fff;font-size:11px;white-space:nowrap;padding:3px 7px;border-radius:5px;pointer-events:none;z-index:300;}
+.s-divider{width:22px;height:1px;background:var(--border);margin:3px 0;}
+
+/* variable panel */
+.var-panel{
+  width:var(--panel);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .2s ease;
+}
+.var-panel.collapsed{width:0;border-right:none;}
+
+.vp-header{padding:12px 14px 10px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--border);}
+.vp-top{display:flex;align-items:center;gap:8px;}
+.vp-title{font-size:13px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vp-collapse{background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px;border-radius:4px;display:flex;}
+.vp-collapse:hover{color:var(--text-2);background:var(--bg);}
+
+.mode-tabs{display:flex;background:var(--bg);border-radius:8px;padding:3px;gap:2px;}
+.m-tab{flex:1;padding:5px 8px;text-align:center;font-size:12px;cursor:pointer;border-radius:6px;color:var(--text-3);border:none;background:none;font-family:inherit;transition:all .12s;}
+.m-tab.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:var(--shadow-sm);}
+
+.v-search{position:relative;}
+.v-search input{width:100%;padding:6px 10px 6px 28px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;background:var(--bg);outline:none;font-family:inherit;}
+.v-search input:focus{border-color:var(--blue);background:var(--surface);}
+.v-search svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-3);}
+
+/* tree */
+.tree{flex:1;overflow-y:auto;padding:6px 0;}
+.tree::-webkit-scrollbar{width:4px;}
+.tree::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:2px;}
+
+.t-folder{cursor:pointer;}
+.t-row{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 10px;font-size:12.5px;color:var(--text-2);
+  transition:background .08s;cursor:pointer;
+  border-radius:0;user-select:none;
+}
+.t-row:hover{background:var(--bg);}
+.t-row.selected{background:var(--blue-lt);color:var(--blue);}
+.t-toggle{width:14px;flex-shrink:0;color:var(--text-3);font-size:9px;display:flex;align-items:center;justify-content:center;}
+.t-ico{flex-shrink:0;font-size:13px;}
+.t-label{flex:1;line-height:1.3;}
+.t-add{
+  width:20px;height:20px;border-radius:5px;background:var(--blue-lt);
+  color:var(--blue);border:none;font-size:15px;cursor:pointer;
+  display:none;align-items:center;justify-content:center;flex-shrink:0;
+}
+.t-row:hover .t-add{display:flex;}
+.t-children{padding-left:14px;}
+
+/* work area */
+.work{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* panel collapse toggle (when panel is collapsed) */
+.panel-toggle{
+  display:none;
+  align-items:center;gap:6px;
+  padding:8px 14px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  font-size:12.5px;color:var(--blue);cursor:pointer;
+  flex-shrink:0;
+}
+.panel-toggle:hover{background:var(--blue-lt);}
+.var-panel.collapsed ~ .work .panel-toggle{display:flex;}
+
+/* composer */
+.composer{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:14px 20px;display:flex;flex-direction:column;gap:11px;flex-shrink:0;
+}
+
+/* geo bar */
+.geo-bar{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg);border-radius:10px;padding:8px 12px;
+}
+.geo-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;}
+.geo-crumbs{display:flex;align-items:center;gap:5px;flex:1;overflow:auto;}
+.geo-sel{
+  padding:4px 10px;border-radius:6px;
+  border:1px solid var(--border-2);font-size:12.5px;
+  background:var(--surface);cursor:pointer;color:var(--text-2);
+  font-family:inherit;
+}
+.geo-sel:focus{outline:none;border-color:var(--blue);}
+.geo-sel.active{border-color:var(--blue-mid);color:var(--blue);background:var(--blue-lt);}
+.geo-arrow{color:var(--text-3);font-size:11px;}
+.geo-filter{margin-left:auto;font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;white-space:nowrap;padding:3px 8px;border-radius:6px;}
+.geo-filter:hover{background:var(--blue-lt);}
+
+/* axes */
+.axes{display:flex;gap:10px;}
+.axis{
+  flex:1;border-radius:10px;padding:10px 12px;min-height:62px;
+  background:var(--bg);border:1.5px dashed transparent;
+  transition:border-color .12s,background .12s;
+}
+.axis:hover{border-color:var(--blue-mid);background:var(--blue-lt);}
+.axis-lbl{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.chip-cat{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber-mid);}
+.chip-quant{background:var(--blue-lt);color:var(--blue);border:1px solid var(--blue-mid);}
+.chip-x{background:none;border:none;cursor:pointer;color:inherit;opacity:.55;font-size:13px;padding:0;line-height:1;}
+.chip-x:hover{opacity:1;}
+.axis-ph{font-size:12px;color:var(--text-3);font-style:italic;}
+
+/* measures row */
+.measures{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.m-label{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+.m-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--green-lt);color:var(--green);border:1px solid var(--green-mid);border-radius:20px;font-size:12px;font-weight:500;}
+.m-add{font-size:12px;color:var(--blue);background:none;border:1px dashed var(--border-2);padding:4px 10px;border-radius:20px;cursor:pointer;font-family:inherit;}
+.m-add:hover{border-color:var(--blue);background:var(--blue-lt);}
+.run-info{font-size:12px;color:var(--text-3);margin-left:auto;}
+
+/* results */
+.results{flex:1;overflow-y:auto;padding:20px 24px;}
+
+.r-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.r-title{font-size:14px;font-weight:700;flex:1;}
+.r-tabs{display:flex;background:var(--bg);border-radius:8px;padding:3px;gap:2px;}
+.r-tab{padding:5px 14px;font-size:12.5px;cursor:pointer;border-radius:6px;color:var(--text-3);border:none;background:none;font-family:inherit;transition:all .12s;}
+.r-tab.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:var(--shadow-sm);}
+.r-acts{display:flex;gap:6px;}
+.act-btn{display:flex;align-items:center;gap:4px;padding:6px 11px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:12px;cursor:pointer;color:var(--text-2);font-family:inherit;}
+.act-btn:hover{background:var(--bg);}
+
+/* ai hint */
+.ai-hint{
+  background:var(--blue-lt);border-radius:10px;
+  padding:10px 14px;font-size:12.5px;color:var(--blue);
+  display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;
+}
+.ai-hint a{color:var(--blue);font-weight:600;}
+
+/* table */
+.tbl-wrap{background:var(--surface);border-radius:12px;box-shadow:var(--shadow-sm);overflow:auto;}
+table{border-collapse:collapse;font-size:12.5px;width:100%;}
+thead th{
+  background:var(--bg);padding:10px 14px;text-align:left;
+  font-size:11.5px;font-weight:700;color:var(--text-2);white-space:nowrap;
+  border-bottom:1.5px solid var(--border);
+}
+thead th.geo{background:var(--blue-lt);color:var(--blue);}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text-2);white-space:nowrap;}
+tbody td.cat{font-weight:500;color:var(--text);}
+tbody td.num{text-align:right;font-variant-numeric:tabular-nums;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--bg);}
+
+.timing{margin-top:10px;display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--text-3);}
+
+/* mobile tree navigation */
+@media(max-width:768px){
+  .var-panel{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .2s;width:85vw!important;}
+  .var-panel.mobile-open{transform:translateX(0);}
+  .t-children{display:none;}
+  .t-folder.mobile-enter > .t-row{font-weight:600;}
+  /* mobile uses breadcrumb navigation inside tree panel */
+}
+</style>
+</head>
+<body>
+
+<div class="govbar">
+  <span>🇧🇷</span><strong>BRASIL</strong>
+  <span style="opacity:.3">|</span>
+  <a href="#">Acesso à informação</a>
+</div>
+
+<header class="appheader">
+  <a class="logo" href="home.html">
+    <span class="logo-badge">BME</span>
+  </a>
+  <div class="breadcrumb">
+    <a href="home.html">Início</a><span class="bc-sep">›</span>
+    <a href="#">Censo 2010</a><span class="bc-sep">›</span>
+    <span class="bc-cur">Nova consulta</span>
+  </div>
+  <div class="h-actions">
+    <button class="btn btn-ghost">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/><path d="M13 3v4H9V3"/></svg>
+      Salvar
+    </button>
+    <button class="btn btn-ghost">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="10" r="2"/><circle cx="14" cy="5" r="2"/><circle cx="14" cy="15" r="2"/><line x1="8" y1="9" x2="12" y2="6"/><line x1="8" y1="11" x2="12" y2="14"/></svg>
+      Compartilhar
+    </button>
+    <div style="width:1px;height:22px;background:var(--border);"></div>
+    <div class="avatar">M</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <nav class="sidebar">
+    <a class="s-ico" href="home.html" title="Início">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2L2 9h2v9h5v-5h2v5h5V9h2L10 2z"/></svg>
+    </a>
+    <a class="s-ico active" href="#" title="Construtor">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="16" height="16" rx="2"/><path d="M7 8h6M7 12h4"/></svg>
+    </a>
+    <div class="s-divider"></div>
+    <a class="s-ico" href="#" title="Minhas consultas">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12M4 8h8M4 12h6"/></svg>
+    </a>
+    <a class="s-ico" href="#" title="Favoritos">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="10,2 12.5,7.5 18,8.3 14,12.2 15,18 10,15.2 5,18 6,12.2 2,8.3 7.5,7.5"/></svg>
+    </a>
+    <a class="s-ico" href="#" title="Consultas IBGE">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2"/></svg>
+    </a>
+  </nav>
+
+  <!-- Variable panel -->
+  <div class="var-panel" id="varPanel">
+    <div class="vp-header">
+      <div class="vp-top">
+        <span class="vp-title">📂 Censo Demográfico 2010</span>
+        <button class="vp-collapse" onclick="togglePanel()" title="Recolher painel">
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 4l-6 6 6 6"/></svg>
+        </button>
+      </div>
+      <div class="mode-tabs">
+        <button class="m-tab active">Árvore</button>
+        <button class="m-tab" onclick="window.location='ai-search.html'">✦ Busca IA</button>
+      </div>
+      <div class="v-search">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 3 3"/></svg>
+        <input type="text" placeholder="Filtrar variáveis…">
+      </div>
+    </div>
+
+    <div class="tree">
+      <div class="t-folder">
+        <div class="t-row">
+          <span class="t-toggle">▼</span><span class="t-ico">📁</span>
+          <span class="t-label">Domicílios</span>
+        </div>
+        <div class="t-children">
+          <div class="t-folder">
+            <div class="t-row">
+              <span class="t-toggle">▼</span><span class="t-ico">📁</span>
+              <span class="t-label">Bens duráveis</span>
+            </div>
+            <div class="t-children">
+              <div class="t-row selected"><span class="t-toggle"></span><span class="t-ico">📄</span><span class="t-label">Automóvel, uso particular, existência</span><button class="t-add">+</button></div>
+              <div class="t-row"><span class="t-toggle"></span><span class="t-ico">📄</span><span class="t-label">Geladeira, existência</span><button class="t-add">+</button></div>
+              <div class="t-row"><span class="t-toggle"></span><span class="t-ico">📄</span><span class="t-label">Máquina de lavar roupa, existência</span><button class="t-add">+</button></div>
+              <div class="t-row"><span class="t-toggle"></span><span class="t-ico">📄</span><span class="t-label">Microcomputador c/ Internet</span><button class="t-add">+</button></div>
+              <div class="t-row"><span class="t-toggle"></span><span class="t-ico">📄</span><span class="t-label">Televisão, existência</span><button class="t-add">+</button></div>
+            </div>
+          </div>
+          <div class="t-folder">
+            <div class="t-row"><span class="t-toggle">▶</span><span class="t-ico">📁</span><span class="t-label">Características gerais</span></div>
+          </div>
+          <div class="t-folder">
+            <div class="t-row"><span class="t-toggle">▶</span><span class="t-ico">📁</span><span class="t-label">Rendimentos</span></div>
+          </div>
+          <div class="t-folder">
+            <div class="t-row"><span class="t-toggle">▶</span><span class="t-ico">📁</span><span class="t-label">Saneamento básico</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="t-folder">
+        <div class="t-row"><span class="t-toggle">▶</span><span class="t-ico">📁</span><span class="t-label">Pessoas</span></div>
+      </div>
+      <div class="t-folder">
+        <div class="t-row"><span class="t-toggle">▶</span><span class="t-ico">📁</span><span class="t-label">Mortalidade</span></div>
+      </div>
+      <div class="t-folder">
+        <div class="t-row"><span class="t-toggle">▶</span><span class="t-ico">📁</span><span class="t-label">Famílias</span></div>
+      </div>
+      <div class="t-folder">
+        <div class="t-row"><span class="t-toggle">▶</span><span class="t-ico">📁</span><span class="t-label">Emigração internacional</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Work area -->
+  <div class="work" id="workArea">
+
+    <!-- Panel reopen toggle (shown when collapsed) -->
+    <button class="panel-toggle" id="panelToggle" onclick="togglePanel()" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l6 6-6 6"/></svg>
+      Variáveis · Censo 2010
+    </button>
+
+    <div class="composer">
+      <!-- Geo -->
+      <div class="geo-bar">
+        <span class="geo-label">📍 Localização</span>
+        <div class="geo-crumbs">
+          <select class="geo-sel active"><option>Brasil (País)</option></select>
+          <span class="geo-arrow">›</span>
+          <select class="geo-sel"><option>Todas as regiões</option><option>Norte</option><option>Nordeste</option><option>Sul</option><option>Sudeste</option><option>Centro-Oeste</option></select>
+          <span class="geo-arrow">›</span>
+          <select class="geo-sel"><option>Todos os estados</option></select>
+          <span class="geo-arrow">›</span>
+          <select class="geo-sel"><option>Todos os municípios</option></select>
+        </div>
+        <button class="geo-filter" onclick="window.location='geo-filter.html'">Filtrar específicos ›</button>
+      </div>
+
+      <!-- Axes -->
+      <div class="axes">
+        <div class="axis">
+          <div class="axis-lbl">↕ Linhas · variáveis categóricas</div>
+          <div class="chips">
+            <span class="chip chip-cat">Automóvel, existência <button class="chip-x">×</button></span>
+            <span class="chip chip-cat">Máq. lavar roupa <button class="chip-x">×</button></span>
+            <span class="chip chip-cat">Microcomp. c/ Internet <button class="chip-x">×</button></span>
+          </div>
+        </div>
+        <div class="axis" style="flex:0 0 180px;">
+          <div class="axis-lbl">↔ Colunas · opcional</div>
+          <div class="chips"><span class="axis-ph">Adicione variável aqui</span></div>
+        </div>
+      </div>
+
+      <!-- Measures + run -->
+      <div class="measures">
+        <span class="m-label">∑ Medidas</span>
+        <span class="m-chip">Rendimento domiciliar · Média <button style="background:none;border:none;cursor:pointer;color:var(--green);opacity:.6;font-size:13px;">×</button></span>
+        <span class="m-chip">Domicílios · Contagem <button style="background:none;border:none;cursor:pointer;color:var(--green);opacity:.6;font-size:13px;">×</button></span>
+        <button class="m-add">+ medida</button>
+        <span class="run-info">3 categorias · 2 medidas · Brasil</span>
+        <button class="btn btn-run" onclick="window.location='results-chart.html'">▶ Executar</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results">
+      <div class="ai-hint">
+        <span style="font-size:15px;">✦</span>
+        <span>Com estas variáveis, um <a href="results-chart.html">gráfico de barras agrupadas</a> visualiza melhor a distribuição de bens. <a href="results-chart.html">Ver sugestão →</a></span>
+      </div>
+
+      <div class="r-header">
+        <span class="r-title">Resultado — Censo Demográfico 2010 · Brasil</span>
+        <div class="r-tabs">
+          <button class="r-tab active">Tabela</button>
+          <button class="r-tab" onclick="window.location='results-chart.html'">Gráfico</button>
+          <button class="r-tab">Mapa</button>
+        </div>
+        <div class="r-acts">
+          <button class="act-btn">⬇ Exportar</button>
+          <button class="act-btn">💾 Salvar</button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="geo" rowspan="2" style="vertical-align:middle;">Localização</th>
+              <th colspan="3" style="text-align:center;border-bottom:1px solid var(--border);">Bens duráveis (Sim / Não)</th>
+              <th rowspan="2" style="text-align:right;vertical-align:middle;">Rend. domiciliar<br><span style="font-weight:400;color:var(--text-3);">Média (R$)</span></th>
+              <th rowspan="2" style="text-align:right;vertical-align:middle;">Domicílios<br><span style="font-weight:400;color:var(--text-3);">Contagem</span></th>
+            </tr>
+            <tr>
+              <th>Automóvel</th><th>Máq. lavar</th><th>Microcomp.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="cat">Brasil</td><td>Não aplic.</td><td>Não aplic.</td><td>Não aplic.</td><td class="num">162,60</td><td class="num">730.894</td></tr>
+            <tr><td class="cat">Brasil</td><td>Sim</td><td>Sim</td><td>Sim</td><td class="num">2.637,12</td><td class="num">4.034.847</td></tr>
+            <tr><td class="cat">Brasil</td><td>Sim</td><td>Sim</td><td>Não</td><td class="num">6.531,55</td><td class="num">10.847.958</td></tr>
+            <tr><td class="cat">Brasil</td><td>Sim</td><td>Não</td><td>Sim</td><td class="num">3.169,93</td><td class="num">1.567.643</td></tr>
+            <tr><td class="cat">Brasil</td><td>Sim</td><td>Não</td><td>Não</td><td class="num">1.749,29</td><td class="num">3.833.958</td></tr>
+            <tr><td class="cat">Brasil</td><td>Não</td><td>Sim</td><td>Não aplic.</td><td class="num">1.485,61</td><td class="num">6.265.662</td></tr>
+            <tr><td class="cat">Brasil</td><td>Não</td><td>Sim</td><td>Sim</td><td class="num">2.638,45</td><td class="num">3.309.340</td></tr>
+            <tr><td class="cat">Brasil</td><td>Não</td><td>Não</td><td>Não aplic.</td><td class="num">919,12</td><td class="num">21.228.893</td></tr>
+            <tr><td class="cat">Brasil</td><td>Não</td><td>Não</td><td>Sim</td><td class="num">1.875,34</td><td class="num">1.754.147</td></tr>
+            <tr><td class="cat">Brasil</td><td>Não</td><td>Não</td><td>Não</td><td class="num">1.444,16</td><td class="num">1.049.905</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="timing">
+        <span>⏱ Cache: 143ms</span><span>Geração: 55ms</span>
+        <span>Execução 1: 1s</span><span>Execução 2: 139ms</span><span>Indexação: 15ms</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePanel(){
+  const p = document.getElementById('varPanel');
+  const t = document.getElementById('panelToggle');
+  const collapsed = p.classList.toggle('collapsed');
+  t.style.display = collapsed ? 'flex' : 'none';
+}
+// tree toggle
+document.querySelectorAll('.t-folder > .t-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const folder = row.parentElement;
+    const children = folder.querySelector('.t-children');
+    const toggle = row.querySelector('.t-toggle');
+    if(children){
+      const open = children.style.display !== 'none';
+      children.style.display = open ? 'none' : '';
+      toggle.textContent = open ? '▶' : '▼';
+    }
+  });
+});
+</script>
+</body>
+</html>

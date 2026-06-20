@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Busca IA – BME</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f7f6f3;--surface:#fff;--surface-2:#efede8;
+  --border:rgba(0,0,0,.07);--border-2:rgba(0,0,0,.12);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.09),0 0 0 1px rgba(0,0,0,.04);
+  --blue:#1351b4;--blue-dk:#0c2340;--blue-lt:#eff4ff;--blue-mid:#c7d9f8;
+  --green:#166534;--green-lt:#f0fdf4;--green-mid:#bbf7d0;
+  --amber:#92400e;--amber-lt:#fff3e0;--amber-mid:#fcd34d;
+  --ai:#7c3aed;--ai-lt:#f5f3ff;--ai-mid:#ddd6fe;
+  --text:#18181b;--text-2:#52525b;--text-3:#a0a09a;--warm-gray:#78746e;
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+.govbar{background:var(--blue-dk);color:#fff;font-size:11px;padding:5px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.govbar a{color:#93b8f0;text-decoration:none;}
+
+.appheader{background:var(--surface);border-bottom:1px solid var(--border);height:52px;padding:0 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-badge{background:var(--blue);color:#fff;font-weight:800;font-size:12px;padding:3px 7px;border-radius:6px;letter-spacing:1.5px;}
+.breadcrumb{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-3);}
+.breadcrumb a{color:var(--blue);text-decoration:none;}
+.bc-sep{color:var(--border);font-size:16px;}
+.h-actions{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;border:none;transition:all .12s;font-family:inherit;}
+.btn-ghost{background:none;color:var(--text-2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:var(--blue-dk);}
+.btn-ai{background:var(--ai);color:#fff;}
+.btn-ai:hover{filter:brightness(1.15);}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* sidebar */
+.sidebar{width:52px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:2px;}
+.s-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--warm-gray);text-decoration:none;transition:all .1s;position:relative;}
+.s-ico:hover{background:var(--bg);color:var(--text);}
+.s-ico.active{background:var(--ai-lt);color:var(--ai);}
+.s-divider{width:22px;height:1px;background:var(--border);margin:3px 0;}
+
+/* main */
+.main{flex:1;display:flex;overflow:hidden;}
+
+/* chat column */
+.chat-col{flex:1;display:flex;flex-direction:column;overflow:hidden;max-width:780px;margin:0 auto;}
+
+/* messages */
+.messages{flex:1;overflow-y:auto;padding:24px 20px 8px;}
+.messages::-webkit-scrollbar{width:4px;}
+.messages::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:2px;}
+
+.msg{margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+}
+.msg-avatar.ai{background:var(--ai-lt);color:var(--ai);font-size:14px;}
+.msg-avatar.user{background:var(--blue);color:#fff;}
+
+.msg-bubble{
+  max-width:80%;padding:12px 14px;border-radius:14px;
+  font-size:13.5px;line-height:1.6;
+}
+.msg.ai .msg-bubble{background:var(--surface);box-shadow:var(--shadow-sm);color:var(--text);border-radius:4px 14px 14px 14px;}
+.msg.user .msg-bubble{background:var(--blue);color:#fff;border-radius:14px 4px 14px 14px;}
+
+/* AI response blocks */
+.ai-section{margin-top:12px;}
+.ai-sec-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+
+/* variable chips in response */
+.var-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.v-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 11px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;
+  border:1.5px solid transparent;transition:all .12s;
+}
+.v-chip.cat{background:var(--amber-lt);color:var(--amber);border-color:var(--amber-mid);}
+.v-chip.quant{background:var(--blue-lt);color:var(--blue);border-color:var(--blue-mid);}
+.v-chip.geo{background:var(--green-lt);color:var(--green);border-color:var(--green-mid);}
+.v-chip .chip-tag{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(0,0,0,.08);}
+.v-chip .remove{background:none;border:none;cursor:pointer;color:inherit;opacity:.5;font-size:13px;padding:0;line-height:1;}
+.v-chip .remove:hover{opacity:1;}
+
+/* config preview */
+.cfg-preview{
+  background:var(--bg);border-radius:10px;padding:12px 14px;
+  display:flex;flex-direction:column;gap:8px;margin-bottom:12px;
+}
+.cfg-row{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;}
+.cfg-key{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;padding-top:2px;min-width:70px;}
+.cfg-val{color:var(--text-2);line-height:1.5;}
+.cfg-val strong{color:var(--text);}
+
+/* action buttons in message */
+.msg-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+.m-btn{padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .12s;}
+.m-btn-primary{background:var(--blue);color:#fff;}
+.m-btn-primary:hover{background:var(--blue-dk);}
+.m-btn-secondary{background:var(--bg);color:var(--text-2);border:1px solid var(--border-2);}
+.m-btn-secondary:hover{background:var(--surface-2);}
+
+/* thinking indicator */
+.thinking{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-3);}
+.dots{display:flex;gap:3px;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--text-3);animation:bounce .8s infinite;}
+.dot:nth-child(2){animation-delay:.15s;}
+.dot:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* suggestion pills (below empty state) */
+.suggestions{padding:16px 20px;display:flex;flex-wrap:wrap;gap:7px;}
+.sug-pill{
+  padding:6px 13px;border-radius:20px;
+  background:var(--surface);box-shadow:var(--shadow-sm);
+  font-size:12.5px;color:var(--text-2);cursor:pointer;
+  transition:all .12s;border:1px solid var(--border);
+}
+.sug-pill:hover{background:var(--blue-lt);color:var(--blue);border-color:var(--blue-mid);}
+
+/* input area */
+.input-area{
+  padding:12px 20px 16px;border-top:1px solid var(--border);
+  background:var(--surface);
+}
+.search-context{
+  display:flex;align-items:center;gap:6px;margin-bottom:8px;
+  font-size:12px;color:var(--text-3);flex-wrap:wrap;
+}
+.ctx-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:12px;
+  background:var(--bg);color:var(--text-2);font-size:11.5px;
+  border:1px solid var(--border);
+}
+.ctx-chip .remove{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:12px;padding:0;}
+
+.input-box{
+  display:flex;align-items:flex-end;gap:8px;
+  background:var(--bg);border:1.5px solid var(--border-2);
+  border-radius:14px;padding:10px 12px;
+  transition:border .15s,box-shadow .15s;
+}
+.input-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(19,81,180,.1);background:var(--surface);}
+.input-box textarea{
+  flex:1;border:none;background:transparent;resize:none;
+  font-size:14px;color:var(--text);outline:none;
+  font-family:inherit;max-height:120px;line-height:1.5;
+}
+.input-box textarea::placeholder{color:var(--text-3);}
+.send-btn{
+  width:34px;height:34px;border-radius:9px;background:var(--ai);
+  color:#fff;border:none;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:all .12s;
+}
+.send-btn:hover{filter:brightness(1.15);}
+.send-btn svg{width:16px;height:16px;}
+.input-hint{font-size:11px;color:var(--text-3);margin-top:6px;text-align:center;}
+
+/* right panel - variable preview */
+.right-panel{
+  width:260px;flex-shrink:0;
+  background:var(--surface);border-left:1px solid var(--border);
+  padding:16px;display:flex;flex-direction:column;gap:12px;
+  overflow-y:auto;
+}
+.rp-title{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;}
+.rp-var{
+  background:var(--bg);border-radius:9px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:3px;
+}
+.rp-var-name{font-size:12.5px;font-weight:600;color:var(--text);}
+.rp-var-code{font-size:11px;color:var(--text-3);}
+.rp-var-type{font-size:11px;}
+.rp-var-type.cat{color:var(--amber);}
+.rp-var-type.quant{color:var(--blue);}
+.rp-var-type.geo{color:var(--green);}
+.rp-cats{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
+.rp-cat{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:2px 6px;font-size:11px;color:var(--text-3);}
+
+.rp-divider{height:1px;background:var(--border);}
+</style>
+</head>
+<body>
+
+<div class="govbar">
+  <span>🇧🇷</span><strong>BRASIL</strong>
+  <span style="opacity:.3">|</span>
+  <a href="#">Acesso à informação</a>
+</div>
+
+<header class="appheader">
+  <a class="logo" href="home.html"><span class="logo-badge">BME</span></a>
+  <div class="breadcrumb">
+    <a href="home.html">Início</a><span class="bc-sep">›</span>
+    <span style="color:var(--ai);font-weight:600;">✦ Busca com IA</span>
+  </div>
+  <div class="h-actions">
+    <button class="btn btn-ghost" onclick="window.location='query-builder.html'">Modo clássico (árvore)</button>
+    <div style="width:1px;height:22px;background:var(--border);"></div>
+    <div class="avatar">M</div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a class="s-ico" href="home.html" title="Início">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2L2 9h2v9h5v-5h2v5h5V9h2L10 2z"/></svg>
+    </a>
+    <a class="s-ico active" href="#" title="Busca IA">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2a1 1 0 011 1v1.27l1.1-.64a1 1 0 011 1.73l-1.1.64 1.1.63a1 1 0 01-1 1.74L11 7.73V9a1 1 0 01-2 0V7.73l-1.1.64a1 1 0 01-1-1.74l1.1-.63-1.1-.64a1 1 0 011-1.73L9 4.27V3a1 1 0 011-1z"/><circle cx="10" cy="13" r="5"/></svg>
+    </a>
+    <div class="s-divider"></div>
+    <a class="s-ico" href="#" title="Minhas consultas">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12M4 8h8M4 12h6"/></svg>
+    </a>
+    <a class="s-ico" href="#" title="Favoritos">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="10,2 12.5,7.5 18,8.3 14,12.2 15,18 10,15.2 5,18 6,12.2 2,8.3 7.5,7.5"/></svg>
+    </a>
+  </nav>
+
+  <div class="main">
+    <div class="chat-col">
+
+      <div class="messages" id="messages">
+
+        <!-- AI welcome message -->
+        <div class="msg ai">
+          <div class="msg-avatar ai">✦</div>
+          <div class="msg-bubble">
+            <strong>Olá! Sou o assistente de consultas do BME.</strong><br><br>
+            Descreva o que você quer analisar em linguagem natural. Posso identificar as variáveis disponíveis no Censo Demográfico, PNAD, POF e outras pesquisas do IBGE e montar a consulta para você.<br><br>
+            Você pode dizer coisas como:<br>
+            <em style="color:var(--text-3);">"Quero ver renda média por raça nos municípios do Nordeste"</em><br>
+            <em style="color:var(--text-3);">"Compare a taxa de escolaridade entre homens e mulheres por estado"</em>
+          </div>
+        </div>
+
+        <!-- User message -->
+        <div class="msg user">
+          <div class="msg-avatar user">M</div>
+          <div class="msg-bubble">
+            Quero ver renda domiciliar média por cor ou raça e existência de automóvel nos estados do Nordeste, usando o Censo 2010
+          </div>
+        </div>
+
+        <!-- AI response -->
+        <div class="msg ai">
+          <div class="msg-avatar ai">✦</div>
+          <div class="msg-bubble" style="max-width:90%;">
+            Encontrei essas variáveis no <strong>Censo Demográfico 2010</strong>. Confira e ajuste se necessário:
+
+            <div class="ai-section">
+              <div class="ai-sec-label">Variáveis categóricas identificadas (Linhas)</div>
+              <div class="var-chips">
+                <span class="v-chip cat">
+                  <span class="chip-tag">V0606</span>
+                  Cor ou raça
+                  <button class="remove">×</button>
+                </span>
+                <span class="v-chip cat">
+                  <span class="chip-tag">V0222</span>
+                  Automóvel, existência
+                  <button class="remove">×</button>
+                </span>
+              </div>
+
+              <div class="ai-sec-label">Medidas identificadas</div>
+              <div class="var-chips">
+                <span class="v-chip quant">
+                  <span class="chip-tag">V6531</span>
+                  Rendimento domiciliar — Média
+                  <button class="remove">×</button>
+                </span>
+                <span class="v-chip quant" style="opacity:.55;border-style:dashed;cursor:pointer;" title="Clique para adicionar">
+                  + Contagem de domicílios?
+                </span>
+              </div>
+
+              <div class="ai-sec-label">Filtro geográfico</div>
+              <div class="var-chips">
+                <span class="v-chip geo">
+                  <span class="chip-tag">Região</span>
+                  Nordeste (9 estados)
+                  <button class="remove">×</button>
+                </span>
+              </div>
+            </div>
+
+            <div class="cfg-preview">
+              <div class="cfg-row">
+                <span class="cfg-key">Pesquisa</span>
+                <span class="cfg-val">Censo Demográfico 2010 · Dados do Universo</span>
+              </div>
+              <div class="cfg-row">
+                <span class="cfg-key">Linhas</span>
+                <span class="cfg-val"><strong>Cor ou raça</strong> × <strong>Automóvel, existência</strong></span>
+              </div>
+              <div class="cfg-row">
+                <span class="cfg-key">Medidas</span>
+                <span class="cfg-val">Rendimento domiciliar — <strong>Média (R$)</strong></span>
+              </div>
+              <div class="cfg-row">
+                <span class="cfg-key">Filtro geo</span>
+                <span class="cfg-val">Nordeste · nível Unidade da Federação</span>
+              </div>
+            </div>
+
+            Quer incluir mais alguma variável ou ajustar o nível geográfico (ex: por Município)?
+
+            <div class="msg-actions">
+              <button class="m-btn m-btn-primary" onclick="window.location='results-chart.html'">▶ Montar e executar</button>
+              <button class="m-btn m-btn-secondary" onclick="window.location='query-builder.html'">Abrir no construtor</button>
+              <button class="m-btn m-btn-secondary">+ Adicionar variável</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- User follow-up -->
+        <div class="msg user">
+          <div class="msg-avatar user">M</div>
+          <div class="msg-bubble">
+            Adicione também o nível de instrução e mude para nível município
+          </div>
+        </div>
+
+        <!-- AI thinking -->
+        <div class="msg ai" id="thinkingMsg">
+          <div class="msg-avatar ai">✦</div>
+          <div class="msg-bubble">
+            <div class="thinking">
+              <span>Buscando variáveis…</span>
+              <div class="dots">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Suggestion chips (show when no context typed) -->
+      <div class="suggestions" style="border-top:1px solid var(--border);">
+        <span style="font-size:11.5px;color:var(--text-3);align-self:center;margin-right:4px;">Sugestões:</span>
+        <span class="sug-pill">Renda por escolaridade e raça</span>
+        <span class="sug-pill">Saneamento básico por município</span>
+        <span class="sug-pill">Taxa de desocupação por sexo</span>
+        <span class="sug-pill">Domicílios por tipo e região</span>
+      </div>
+
+      <div class="input-area">
+        <div class="search-context">
+          <span>Contexto:</span>
+          <span class="ctx-chip">
+            📂 Censo 2010
+            <button class="remove">×</button>
+          </span>
+          <span class="ctx-chip">
+            📍 Nordeste
+            <button class="remove">×</button>
+          </span>
+          <span style="color:var(--blue);cursor:pointer;font-size:11.5px;">+ trocar pesquisa</span>
+        </div>
+        <div class="input-box">
+          <textarea rows="1" placeholder="Descreva o que quer analisar ou peça ajustes na consulta atual…" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+          <button class="send-btn">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 10l7-7 7 7M10 3v14"/>
+            </svg>
+          </button>
+        </div>
+        <div class="input-hint">A IA identifica variáveis disponíveis no BME · Você revisa antes de executar</div>
+      </div>
+    </div>
+
+    <!-- Variable detail panel -->
+    <div class="right-panel">
+      <div class="rp-title">Variáveis selecionadas</div>
+
+      <div class="rp-var">
+        <span class="rp-var-name">Cor ou raça</span>
+        <span class="rp-var-code">V0606 · CD2010 · Universo</span>
+        <span class="rp-var-type cat">● Categórica</span>
+        <div class="rp-cats">
+          <span class="rp-cat">1 – Branca</span>
+          <span class="rp-cat">2 – Preta</span>
+          <span class="rp-cat">3 – Amarela</span>
+          <span class="rp-cat">4 – Parda</span>
+          <span class="rp-cat">5 – Indígena</span>
+        </div>
+      </div>
+
+      <div class="rp-var">
+        <span class="rp-var-name">Automóvel, uso particular, existência</span>
+        <span class="rp-var-code">V0222 · CD2010 · Amostra</span>
+        <span class="rp-var-type cat">● Categórica</span>
+        <div class="rp-cats">
+          <span class="rp-cat">1 – Sim</span>
+          <span class="rp-cat">2 – Não</span>
+        </div>
+      </div>
+
+      <div class="rp-var">
+        <span class="rp-var-name">Rendimento domiciliar</span>
+        <span class="rp-var-code">V6531 · CD2010 · Amostra</span>
+        <span class="rp-var-type quant">▲ Quantitativa contínua</span>
+        <div class="rp-cats" style="margin-top:4px;">
+          <span class="rp-cat">Média</span>
+          <span class="rp-cat">Mediana</span>
+          <span class="rp-cat">Soma</span>
+        </div>
+      </div>
+
+      <div class="rp-divider"></div>
+
+      <div>
+        <div class="rp-title" style="margin-bottom:8px;">Filtro geográfico</div>
+        <div class="rp-var">
+          <span class="rp-var-name">Nordeste</span>
+          <span class="rp-var-code">9 estados · nível UF</span>
+          <span class="rp-var-type geo">📍 Geográfico</span>
+        </div>
+      </div>
+
+      <div class="rp-divider"></div>
+
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:12px;">
+        Ver todas as variáveis disponíveis
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

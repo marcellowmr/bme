@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filtro Geográfico – BME</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f7f6f3;--surface:#fff;
+  --border:rgba(0,0,0,.07);--border-2:rgba(0,0,0,.12);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.05);
+  --shadow:0 8px 32px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.06);
+  --blue:#1351b4;--blue-dk:#0c2340;--blue-lt:#eff4ff;--blue-mid:#c7d9f8;
+  --green:#166534;--green-lt:#f0fdf4;
+  --text:#18181b;--text-2:#52525b;--text-3:#a0a09a;
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+body{font-family:var(--font);background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;backdrop-filter:blur(2px);}
+
+.modal{
+  background:var(--surface);border-radius:18px;
+  width:780px;max-width:100%;box-shadow:var(--shadow);
+  overflow:hidden;display:flex;flex-direction:column;
+  max-height:88vh;
+}
+
+/* header */
+.m-header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.m-header h2{font-size:15px;font-weight:700;flex:1;}
+.m-close{background:none;border:none;width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-3);font-size:18px;}
+.m-close:hover{background:var(--bg);color:var(--text);}
+
+/* levels */
+.geo-levels{
+  display:flex;padding:0 22px;
+  background:var(--bg);overflow-x:auto;flex-shrink:0;
+  border-bottom:1px solid var(--border);
+}
+.lv-tab{
+  display:flex;align-items:center;gap:5px;padding:9px 13px;
+  font-size:12.5px;cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;color:var(--text-3);
+  transition:all .12s;
+}
+.lv-tab:hover{color:var(--text-2);}
+.lv-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.lv-tab .lv-check{background:var(--green-lt);color:var(--green);font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:10px;}
+.lv-tab .lv-count{background:var(--blue-lt);color:var(--blue);font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:10px;}
+.lv-arrow{color:var(--text-3);font-size:11px;align-self:center;}
+
+/* context bar */
+.ctx-bar{
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  padding:8px 22px;border-bottom:1px solid var(--border);
+  font-size:12px;color:var(--text-3);background:var(--surface);
+}
+.ctx-chip{display:inline-flex;align-items:center;gap:4px;background:var(--blue-lt);color:var(--blue);border:1px solid var(--blue-mid);border-radius:12px;padding:3px 9px;font-size:11.5px;font-weight:500;}
+
+/* body */
+.m-body{display:flex;flex:1;overflow:hidden;}
+
+/* available list */
+.geo-avail{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);}
+.p-head{padding:10px 14px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.p-label{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.p-search{position:relative;}
+.p-search input{width:100%;padding:6px 10px 6px 28px;border:1px solid var(--border);border-radius:8px;font-size:12.5px;background:var(--bg);outline:none;font-family:inherit;}
+.p-search input:focus{border-color:var(--blue);background:var(--surface);}
+.p-search svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;color:var(--text-3);}
+.opts{flex:1;overflow-y:auto;}
+.opts::-webkit-scrollbar{width:4px;}
+.opts::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:2px;}
+.opt{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;cursor:pointer;color:var(--text-2);transition:background .08s;user-select:none;}
+.opt:hover{background:var(--bg);}
+.opt input[type=checkbox]{accent-color:var(--blue);width:14px;height:14px;flex-shrink:0;}
+.opt-code{color:var(--text-3);font-size:11px;min-width:26px;}
+
+/* arrows */
+.geo-arrows{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:0 10px;flex-shrink:0;}
+.arr-btn{
+  width:30px;height:30px;border-radius:8px;
+  border:1px solid var(--border-2);background:var(--surface);
+  cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+  color:var(--blue);transition:all .12s;
+}
+.arr-btn:hover{background:var(--blue-lt);border-color:var(--blue-mid);}
+.arr-btn.remove{color:var(--text-3);}
+.arr-btn.remove:hover{background:var(--bg);}
+
+/* selected */
+.geo-sel-panel{width:240px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+.sel-item{
+  display:flex;align-items:center;gap:7px;padding:7px 14px;
+  font-size:12.5px;color:var(--blue);
+  background:var(--blue-lt);border-bottom:1px solid rgba(19,81,180,.08);
+}
+.sel-code{color:#6b9ce8;font-size:11px;min-width:26px;}
+.sel-remove{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--blue);opacity:.4;font-size:14px;}
+.sel-remove:hover{opacity:1;}
+.sel-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text-3);font-size:12.5px;padding:24px;text-align:center;}
+
+/* footer */
+.m-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.f-info{font-size:12.5px;color:var(--text-3);flex:1;}
+.f-info strong{color:var(--text-2);}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .12s;font-family:inherit;}
+.btn-ghost{background:none;color:var(--text-2);border:1px solid var(--border-2);}
+.btn-ghost:hover{background:var(--bg);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:var(--blue-dk);}
+</style>
+</head>
+<body>
+
+<div class="modal">
+  <div class="m-header">
+    <span style="font-size:18px;">📍</span>
+    <h2>Filtro Geográfico</h2>
+    <button class="m-close" onclick="window.history.back()">×</button>
+  </div>
+
+  <div class="geo-levels">
+    <div class="lv-tab">Brasil</div>
+    <span class="lv-arrow">›</span>
+    <div class="lv-tab">Grande Região</div>
+    <span class="lv-arrow">›</span>
+    <div class="lv-tab active">Unidade da Federação <span class="lv-check">✓ 5</span></div>
+    <span class="lv-arrow">›</span>
+    <div class="lv-tab">Mesorregião</div>
+    <span class="lv-arrow">›</span>
+    <div class="lv-tab">Microrregião</div>
+    <span class="lv-arrow">›</span>
+    <div class="lv-tab">Município <span class="lv-count">5.570</span></div>
+  </div>
+
+  <div class="ctx-bar">
+    <span>Filtrando dentro de:</span>
+    <span class="ctx-chip">🗺 Região Nordeste</span>
+    <span>· Selecione os estados desejados</span>
+  </div>
+
+  <div class="m-body">
+    <div class="geo-avail">
+      <div class="p-head">
+        <div class="p-label">Disponíveis</div>
+        <div class="p-search">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 3 3"/></svg>
+          <input type="text" placeholder="Buscar estado…">
+        </div>
+      </div>
+      <div class="opts">
+        <div class="opt"><input type="checkbox"><span class="opt-code">12</span>Acre</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">27</span>Alagoas</div>
+        <div class="opt"><input type="checkbox" checked><span class="opt-code">16</span>Amapá</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">13</span>Amazonas</div>
+        <div class="opt"><input type="checkbox" checked><span class="opt-code">29</span>Bahia</div>
+        <div class="opt"><input type="checkbox" checked><span class="opt-code">23</span>Ceará</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">53</span>Distrito Federal</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">32</span>Espírito Santo</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">52</span>Goiás</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">21</span>Maranhão</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">51</span>Mato Grosso</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">50</span>Mato Grosso do Sul</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">31</span>Minas Gerais</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">15</span>Pará</div>
+        <div class="opt"><input type="checkbox" checked><span class="opt-code">25</span>Paraíba</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">41</span>Paraná</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">26</span>Pernambuco</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">22</span>Piauí</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">33</span>Rio de Janeiro</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">24</span>Rio Grande do Norte</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">43</span>Rio Grande do Sul</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">11</span>Rondônia</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">14</span>Roraima</div>
+        <div class="opt"><input type="checkbox" checked><span class="opt-code">42</span>Santa Catarina</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">35</span>São Paulo</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">28</span>Sergipe</div>
+        <div class="opt"><input type="checkbox"><span class="opt-code">17</span>Tocantins</div>
+      </div>
+    </div>
+
+    <div class="geo-arrows">
+      <button class="arr-btn" title="Adicionar selecionados">›</button>
+      <button class="arr-btn" title="Adicionar todos">»</button>
+      <button class="arr-btn remove" title="Remover selecionados">‹</button>
+      <button class="arr-btn remove" title="Remover todos">«</button>
+    </div>
+
+    <div class="geo-sel-panel">
+      <div class="p-head">
+        <div class="p-label">Selecionados (5)</div>
+      </div>
+      <div class="sel-item"><span class="sel-code">16</span>Amapá<button class="sel-remove">×</button></div>
+      <div class="sel-item"><span class="sel-code">29</span>Bahia<button class="sel-remove">×</button></div>
+      <div class="sel-item"><span class="sel-code">23</span>Ceará<button class="sel-remove">×</button></div>
+      <div class="sel-item"><span class="sel-code">25</span>Paraíba<button class="sel-remove">×</button></div>
+      <div class="sel-item"><span class="sel-code">42</span>Santa Catarina<button class="sel-remove">×</button></div>
+      <div class="sel-empty" style="display:none;">Nenhum item selecionado</div>
+    </div>
+  </div>
+
+  <div class="m-footer">
+    <span class="f-info"><strong>5 estados</strong> selecionados · Unidade da Federação</span>
+    <button class="btn btn-ghost">Limpar</button>
+    <button class="btn btn-blue" onclick="window.location='query-builder.html'">Aplicar filtro</button>
+  </div>
+</div>
+
+</body>
+</html>

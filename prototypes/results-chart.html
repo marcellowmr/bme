@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resultado – Gráfico – BME</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f7f6f3;--surface:#fff;--surface-2:#efede8;
+  --border:rgba(0,0,0,.07);--shadow-sm:0 1px 3px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.05);
+  --shadow:0 4px 16px rgba(0,0,0,.09),0 0 0 1px rgba(0,0,0,.04);
+  --blue:#1351b4;--blue-dk:#0c2340;--blue-lt:#eff4ff;--blue-mid:#c7d9f8;
+  --text:#18181b;--text-2:#52525b;--text-3:#a0a09a;--warm-gray:#78746e;
+  --font:'Segoe UI',system-ui,sans-serif;
+  --c1:#1351b4;--c2:#2670e8;--c3:#5b99f8;--c4:#93b8f5;--c5:#c7d9f8;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+.govbar{background:var(--blue-dk);color:#fff;font-size:11px;padding:5px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.govbar a{color:#93b8f0;text-decoration:none;}
+
+.appheader{background:var(--surface);border-bottom:1px solid var(--border);height:52px;padding:0 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-badge{background:var(--blue);color:#fff;font-weight:800;font-size:12px;padding:3px 7px;border-radius:6px;letter-spacing:1.5px;}
+.breadcrumb{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-3);}
+.breadcrumb a{color:var(--blue);text-decoration:none;}
+.bc-sep{color:var(--border);font-size:16px;}
+.h-actions{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;border:none;transition:all .12s;font-family:inherit;}
+.btn-ghost{background:none;color:var(--text-2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:var(--blue-dk);}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+
+.layout{display:flex;flex:1;overflow:hidden;}
+
+/* sidebar */
+.sidebar{width:52px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:2px;}
+.s-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;color:var(--warm-gray);text-decoration:none;transition:all .1s;position:relative;}
+.s-ico:hover{background:var(--bg);color:var(--text);}
+.s-ico.active{background:var(--blue-lt);color:var(--blue);}
+.s-ico[title]:hover::after{content:attr(title);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);background:#1c1b1a;color:#fff;font-size:11px;white-space:nowrap;padding:3px 7px;border-radius:5px;z-index:300;}
+.s-divider{width:22px;height:1px;background:var(--border);margin:3px 0;}
+
+/* main area */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* result header */
+.r-top{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.r-title{font-size:14px;font-weight:700;flex:1;}
+.r-tabs{display:flex;background:var(--bg);border-radius:8px;padding:3px;gap:2px;}
+.r-tab{padding:5px 14px;font-size:12.5px;cursor:pointer;border-radius:6px;color:var(--text-3);border:none;background:none;font-family:inherit;transition:all .12s;}
+.r-tab.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:var(--shadow-sm);}
+.r-acts{display:flex;gap:6px;}
+.act-btn{display:flex;align-items:center;gap:4px;padding:6px 11px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:12px;cursor:pointer;color:var(--text-2);font-family:inherit;}
+.act-btn:hover{background:var(--bg);}
+
+/* body */
+.chart-body{flex:1;display:flex;overflow:hidden;}
+
+/* chart panel */
+.chart-area{flex:1;padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;}
+
+/* chart controls bar */
+.chart-controls{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--surface);border-radius:10px;padding:10px 14px;
+  box-shadow:var(--shadow-sm);
+}
+.ctrl-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;}
+.ctrl-sel{padding:4px 10px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;background:var(--bg);font-family:inherit;color:var(--text-2);}
+.ctrl-sep{width:1px;height:20px;background:var(--border);}
+
+/* legend */
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-2);}
+.leg-item{display:flex;align-items:center;gap:5px;}
+.leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+
+/* SVG chart */
+.chart-wrap{background:var(--surface);border-radius:14px;padding:24px;box-shadow:var(--shadow-sm);overflow-x:auto;}
+.chart-wrap h2{font-size:14px;font-weight:700;margin-bottom:4px;}
+.chart-wrap p{font-size:12.5px;color:var(--text-3);margin-bottom:20px;}
+
+svg.chart{overflow:visible;}
+.bar{transition:opacity .12s;cursor:pointer;}
+.bar:hover{opacity:.75;}
+.axis-line{stroke:var(--border);stroke-width:1;}
+.tick-text{font-size:11px;fill:var(--text-3);font-family:'Segoe UI',sans-serif;}
+.tick-label{font-size:11.5px;fill:var(--text-2);font-family:'Segoe UI',sans-serif;}
+.chart-title-lbl{font-size:12px;fill:var(--text-3);font-family:'Segoe UI',sans-serif;}
+
+/* tooltip */
+.tooltip{
+  position:absolute;background:var(--text);color:#fff;
+  padding:7px 11px;border-radius:8px;font-size:12px;
+  pointer-events:none;white-space:nowrap;z-index:200;
+  display:none;box-shadow:0 4px 12px rgba(0,0,0,.2);
+}
+
+/* config sidebar */
+.chart-config{
+  width:220px;flex-shrink:0;
+  background:var(--surface);border-left:1px solid var(--border);
+  padding:16px;display:flex;flex-direction:column;gap:16px;
+  overflow-y:auto;
+}
+.cfg-title{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.chart-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ct-opt{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:8px 6px;border-radius:8px;border:1.5px solid var(--border);
+  cursor:pointer;font-size:11.5px;color:var(--text-2);
+  background:var(--bg);transition:all .12s;text-align:center;
+}
+.ct-opt:hover{border-color:var(--blue-mid);color:var(--blue);}
+.ct-opt.selected{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);font-weight:600;}
+.ct-ico{font-size:20px;}
+
+.cfg-field{display:flex;flex-direction:column;gap:4px;}
+.cfg-label{font-size:11.5px;color:var(--text-3);}
+.cfg-sel{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;background:var(--bg);font-family:inherit;width:100%;}
+
+/* summary pills */
+.summary-row{display:flex;flex-direction:column;gap:5px;}
+.s-pill{display:flex;align-items:center;gap:6px;background:var(--bg);border-radius:7px;padding:6px 10px;font-size:12px;color:var(--text-2);}
+.s-pill-lbl{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;min-width:48px;}
+</style>
+</head>
+<body>
+
+<div class="govbar">
+  <span>🇧🇷</span><strong>BRASIL</strong>
+  <span style="opacity:.3">|</span>
+  <a href="#">Acesso à informação</a>
+</div>
+
+<header class="appheader">
+  <a class="logo" href="home.html"><span class="logo-badge">BME</span></a>
+  <div class="breadcrumb">
+    <a href="home.html">Início</a><span class="bc-sep">›</span>
+    <a href="query-builder.html">Censo 2010 · Domicílios</a><span class="bc-sep">›</span>
+    <span style="color:var(--text-2);font-weight:500;">Resultado</span>
+  </div>
+  <div class="h-actions">
+    <button class="btn btn-ghost" onclick="window.location='query-builder.html'">← Editar consulta</button>
+    <button class="btn btn-ghost">⬇ Exportar</button>
+    <button class="btn btn-ghost">💾 Salvar</button>
+    <button class="btn btn-ghost">🔗 Compartilhar</button>
+    <div style="width:1px;height:22px;background:var(--border);"></div>
+    <div class="avatar">M</div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a class="s-ico" href="home.html" title="Início">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2L2 9h2v9h5v-5h2v5h5V9h2L10 2z"/></svg>
+    </a>
+    <a class="s-ico active" href="#" title="Construtor">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="16" height="16" rx="2"/><path d="M7 8h6M7 12h4"/></svg>
+    </a>
+    <div class="s-divider"></div>
+    <a class="s-ico" href="#" title="Minhas consultas">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12M4 8h8M4 12h6"/></svg>
+    </a>
+    <a class="s-ico" href="#" title="Favoritos">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="10,2 12.5,7.5 18,8.3 14,12.2 15,18 10,15.2 5,18 6,12.2 2,8.3 7.5,7.5"/></svg>
+    </a>
+  </nav>
+
+  <div class="main">
+    <!-- Result tabs -->
+    <div class="r-top">
+      <span class="r-title">Bens duráveis × Rendimento domiciliar — Censo 2010 · Brasil</span>
+      <div class="r-tabs">
+        <button class="r-tab" onclick="window.location='query-builder.html'">Tabela</button>
+        <button class="r-tab active">Gráfico</button>
+        <button class="r-tab">Mapa</button>
+      </div>
+      <div class="r-acts">
+        <button class="act-btn">⬇ PNG</button>
+        <button class="act-btn">⬇ CSV</button>
+      </div>
+    </div>
+
+    <div class="chart-body">
+      <!-- Chart area -->
+      <div class="chart-area">
+
+        <div class="chart-controls">
+          <span class="ctrl-label">Eixo X</span>
+          <select class="ctrl-sel"><option>Combinação de bens</option></select>
+          <div class="ctrl-sep"></div>
+          <span class="ctrl-label">Eixo Y</span>
+          <select class="ctrl-sel"><option>Rendimento domiciliar — Média (R$)</option><option>Domicílios — Contagem</option></select>
+          <div class="ctrl-sep"></div>
+          <span class="ctrl-label">Agrupar por</span>
+          <select class="ctrl-sel"><option>Nenhum</option><option>Região</option><option>UF</option></select>
+        </div>
+
+        <div class="chart-wrap">
+          <h2>Rendimento domiciliar médio por combinação de bens duráveis</h2>
+          <p>Brasil · Censo Demográfico 2010 · Universo · Valores em R$</p>
+
+          <div class="legend" style="margin-bottom:16px;">
+            <span class="leg-item"><span class="leg-dot" style="background:var(--c1)"></span>Tem automóvel</span>
+            <span class="leg-item"><span class="leg-dot" style="background:var(--c3)"></span>Sem automóvel</span>
+          </div>
+
+          <!-- SVG Bar Chart -->
+          <div style="position:relative;">
+            <div class="tooltip" id="tooltip"></div>
+            <svg class="chart" width="100%" viewBox="0 0 740 340" preserveAspectRatio="xMidYMid meet">
+              <!-- Y axis -->
+              <line class="axis-line" x1="80" y1="20" x2="80" y2="290"/>
+              <!-- X axis -->
+              <line class="axis-line" x1="80" y1="290" x2="720" y2="290"/>
+
+              <!-- Y gridlines + labels -->
+              <line stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3" x1="80" y1="230" x2="720" y2="230"/>
+              <text class="tick-text" text-anchor="end" x="74" y="234">2.000</text>
+              <line stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3" x1="80" y1="170" x2="720" y2="170"/>
+              <text class="tick-text" text-anchor="end" x="74" y="174">4.000</text>
+              <line stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3" x1="80" y1="110" x2="720" y2="110"/>
+              <text class="tick-text" text-anchor="end" x="74" y="114">6.000</text>
+              <line stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3" x1="80" y1="50" x2="720" y2="50"/>
+              <text class="tick-text" text-anchor="end" x="74" y="54">8.000</text>
+              <text class="chart-title-lbl" transform="rotate(-90)" x="-160" y="18" text-anchor="middle">Rendimento médio (R$)</text>
+
+              <!-- Bars — group 1: Automóvel+Máq+Micro=Sim -->
+              <!-- Bar heights: val/8200 * 240 (chart height from y=290 to y=50) -->
+              <!-- 6531/8200*240=191 => y=290-191=99 -->
+              <rect class="bar" fill="var(--c1)" x="100" y="99" width="40" height="191" rx="4" onmouseenter="showTip(event,'Sim+Sim+Sim','R$ 6.531')" onmouseleave="hideTip()"/>
+              <!-- 1875/8200*240=55 -->
+              <rect class="bar" fill="var(--c3)" x="148" y="235" width="40" height="55" rx="4" onmouseenter="showTip(event,'Não+Não+Sim','R$ 1.875')" onmouseleave="hideTip()"/>
+              <text class="tick-label" text-anchor="middle" x="144" y="308">Sim+Sim+Sim</text>
+
+              <!-- group 2: Automóvel+Máq=Sim, Micro=Não -->
+              <!-- 2637/8200*240=77 -->
+              <rect class="bar" fill="var(--c2)" x="210" y="213" width="40" height="77" rx="4" onmouseenter="showTip(event,'Sim+Sim+Não','R$ 2.637')" onmouseleave="hideTip()"/>
+              <!-- 919/8200*240=27 -->
+              <rect class="bar" fill="var(--c4)" x="258" y="263" width="40" height="27" rx="4" onmouseenter="showTip(event,'Não+Não+Não','R$ 919')" onmouseleave="hideTip()"/>
+              <text class="tick-label" text-anchor="middle" x="254" y="308">Sim+Sim+Não</text>
+
+              <!-- group 3: Automóvel=Sim, Máq=Não, Micro=Sim -->
+              <!-- 3169/8200*240=93 -->
+              <rect class="bar" fill="var(--c1)" x="320" y="197" width="40" height="93" rx="4" onmouseenter="showTip(event,'Sim+Não+Sim','R$ 3.169')" onmouseleave="hideTip()"/>
+              <!-- 1485/8200*240=43 -->
+              <rect class="bar" fill="var(--c3)" x="368" y="247" width="40" height="43" rx="4" onmouseenter="showTip(event,'Não+Sim+Não','R$ 1.485')" onmouseleave="hideTip()"/>
+              <text class="tick-label" text-anchor="middle" x="364" y="308">Sim+Não+Sim</text>
+
+              <!-- group 4: Automóvel=Sim, Máq=Não, Micro=Não -->
+              <!-- 1749/8200*240=51 -->
+              <rect class="bar" fill="var(--c2)" x="430" y="239" width="40" height="51" rx="4" onmouseenter="showTip(event,'Sim+Não+Não','R$ 1.749')" onmouseleave="hideTip()"/>
+              <!-- 1444/8200*240=42 -->
+              <rect class="bar" fill="var(--c4)" x="478" y="248" width="40" height="42" rx="4" onmouseenter="showTip(event,'Não+Não+Não','R$ 1.444')" onmouseleave="hideTip()"/>
+              <text class="tick-label" text-anchor="middle" x="474" y="308">Sim+Não+Não</text>
+
+              <!-- group 5: Automóvel=Não, Máq=Sim -->
+              <!-- 2638/8200*240=77 -->
+              <rect class="bar" fill="var(--c3)" x="540" y="213" width="40" height="77" rx="4" onmouseenter="showTip(event,'Não+Sim+Sim','R$ 2.638')" onmouseleave="hideTip()"/>
+              <!-- 163/8200*240=5 (n/a) -->
+              <rect class="bar" fill="var(--c5)" x="588" y="285" width="40" height="5" rx="2" onmouseenter="showTip(event,'N/A','R$ 163')" onmouseleave="hideTip()"/>
+              <text class="tick-label" text-anchor="middle" x="584" y="308">Não+Sim</text>
+
+              <!-- R$ axis label -->
+              <text class="tick-text" text-anchor="end" x="74" y="294">0</text>
+            </svg>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow-sm);font-size:12.5px;color:var(--text-2);line-height:1.6;">
+          <strong style="color:var(--text);">✦ Interpretação automática</strong><br>
+          Domicílios com automóvel, máquina de lavar e microcomputador com internet simultaneamente concentram o maior rendimento médio (<strong>R$ 6.531</strong>), seguidos por aqueles sem o microcomputador (<strong>R$ 2.637</strong>). Domicílios sem nenhum dos três bens registram rendimento médio de <strong>R$ 919</strong>, 7× menor que o grupo mais rico.
+        </div>
+
+      </div>
+
+      <!-- Config sidebar -->
+      <div class="chart-config">
+        <div>
+          <div class="cfg-title">Tipo de gráfico</div>
+          <div class="chart-type-grid">
+            <div class="ct-opt selected">
+              <span class="ct-ico">📊</span>Barras
+            </div>
+            <div class="ct-opt">
+              <span class="ct-ico">📈</span>Linhas
+            </div>
+            <div class="ct-opt">
+              <span class="ct-ico">🥧</span>Pizza
+            </div>
+            <div class="ct-opt">
+              <span class="ct-ico">🟦</span>Área
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="cfg-title">Configurações</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="cfg-field">
+              <span class="cfg-label">Orientação</span>
+              <select class="cfg-sel"><option>Vertical</option><option>Horizontal</option></select>
+            </div>
+            <div class="cfg-field">
+              <span class="cfg-label">Barras empilhadas</span>
+              <select class="cfg-sel"><option>Não</option><option>Sim (absoluto)</option><option>Sim (percentual)</option></select>
+            </div>
+            <div class="cfg-field">
+              <span class="cfg-label">Exibir valores</span>
+              <select class="cfg-sel"><option>Ao passar o mouse</option><option>Sempre visíveis</option><option>Ocultos</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="cfg-title">Consulta</div>
+          <div class="summary-row">
+            <div class="s-pill"><span class="s-pill-lbl">Pesquisa</span>Censo 2010</div>
+            <div class="s-pill"><span class="s-pill-lbl">Linhas</span>3 variáveis categ.</div>
+            <div class="s-pill"><span class="s-pill-lbl">Medida</span>Rend. médio</div>
+            <div class="s-pill"><span class="s-pill-lbl">Geo</span>Brasil</div>
+          </div>
+        </div>
+
+        <button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="window.location='query-builder.html'">← Editar consulta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTip(e, label, val){
+  const t = document.getElementById('tooltip');
+  t.style.display = 'block';
+  t.innerHTML = '<strong>'+label+'</strong><br>'+val;
+  t.style.left = (e.clientX+12)+'px';
+  t.style.top = (e.clientY-30)+'px';
+}
+function hideTip(){
+  document.getElementById('tooltip').style.display='none';
+}
+</script>
+</body>
+</html>
