@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar – BME</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f7f6f3;--surface:#fff;
+  --border:rgba(0,0,0,.08);--border-2:rgba(0,0,0,.14);
+  --shadow:0 8px 32px rgba(0,0,0,.10),0 0 0 1px rgba(0,0,0,.05);
+  --blue:#1351b4;--blue-dk:#0c2340;--blue-lt:#eff4ff;--blue-mid:#c7d9f8;
+  --govbr:#1351b4;
+  --text:#18181b;--text-2:#52525b;--text-3:#a0a09a;
+  --font:'Segoe UI',system-ui,sans-serif;
+  --r:14px;
+}
+body{font-family:var(--font);background:var(--bg);display:flex;flex-direction:column;min-height:100vh;}
+
+/* gov bar */
+.govbar{background:var(--blue-dk);color:#fff;font-size:11px;padding:5px 20px;display:flex;align-items:center;gap:12px;}
+.govbar a{color:#93b8f0;text-decoration:none;}
+
+/* header strip */
+.brand-strip{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 24px;display:flex;align-items:center;gap:10px;
+}
+.logo-badge{background:var(--blue);color:#fff;font-weight:800;font-size:13px;padding:4px 8px;border-radius:6px;letter-spacing:1.5px;}
+.logo-text{font-size:12.5px;color:var(--text-2);}
+
+/* page */
+.page{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 16px;}
+
+/* card */
+.card{
+  background:var(--surface);border-radius:20px;
+  box-shadow:var(--shadow);
+  width:100%;max-width:420px;
+  overflow:hidden;
+}
+
+.card-top{
+  background:linear-gradient(140deg,var(--blue-dk) 0%,var(--blue) 100%);
+  padding:32px 32px 28px;color:#fff;text-align:center;
+}
+.card-top .ico{font-size:36px;margin-bottom:12px;}
+.card-top h1{font-size:20px;font-weight:700;margin-bottom:4px;}
+.card-top p{font-size:13px;opacity:.8;line-height:1.5;}
+
+.card-body{padding:28px 32px 32px;}
+
+/* tabs */
+.tabs{display:flex;background:var(--bg);border-radius:10px;padding:3px;gap:2px;margin-bottom:24px;}
+.tab{flex:1;padding:7px;text-align:center;font-size:12.5px;cursor:pointer;border-radius:8px;color:var(--text-3);border:none;background:none;font-family:inherit;transition:all .12s;}
+.tab.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+/* auth options */
+.auth-section{display:none;}
+.auth-section.active{display:block;}
+
+/* govbr option */
+.govbr-btn{
+  display:flex;align-items:center;gap:12px;
+  width:100%;padding:14px 18px;
+  background:var(--blue);color:#fff;
+  border:none;border-radius:12px;cursor:pointer;
+  font-size:14px;font-weight:600;font-family:inherit;
+  transition:all .12s;margin-bottom:10px;
+}
+.govbr-btn:hover{background:var(--blue-dk);}
+.govbr-btn .govbr-ico{
+  background:rgba(255,255,255,.2);border-radius:7px;
+  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.govbr-btn .txt{text-align:left;}
+.govbr-btn .txt small{display:block;font-size:11px;font-weight:400;opacity:.8;margin-top:1px;}
+
+.govbr-note{
+  background:var(--blue-lt);border-radius:9px;
+  padding:10px 13px;font-size:12px;color:var(--blue);
+  line-height:1.5;
+}
+
+/* AD option */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:5px;}
+.field input{
+  width:100%;padding:9px 13px;
+  border:1.5px solid var(--border-2);border-radius:9px;
+  font-size:14px;color:var(--text);background:var(--surface);
+  font-family:inherit;outline:none;transition:border .12s,box-shadow .12s;
+}
+.field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(19,81,180,.1);}
+.field input::placeholder{color:var(--text-3);}
+.field-hint{font-size:11.5px;color:var(--text-3);margin-top:4px;}
+
+.domain-prefix{
+  display:flex;align-items:center;
+  border:1.5px solid var(--border-2);border-radius:9px;
+  overflow:hidden;transition:border .12s,box-shadow .12s;
+}
+.domain-prefix:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(19,81,180,.1);}
+.domain-tag{background:var(--bg);padding:9px 12px;font-size:13.5px;color:var(--text-3);border-right:1.5px solid var(--border-2);white-space:nowrap;flex-shrink:0;}
+.domain-prefix input{border:none;padding:9px 12px;font-size:14px;color:var(--text);background:transparent;font-family:inherit;outline:none;flex:1;}
+
+/* submit button */
+.submit-btn{
+  width:100%;padding:11px;background:var(--blue);color:#fff;
+  border:none;border-radius:10px;font-size:14px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .12s;margin-top:4px;
+}
+.submit-btn:hover{background:var(--blue-dk);}
+
+/* divider */
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--text-3);font-size:12px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* forgot */
+.forgot{text-align:center;margin-top:14px;font-size:12.5px;color:var(--text-3);}
+.forgot a{color:var(--blue);text-decoration:none;}
+.forgot a:hover{text-decoration:underline;}
+
+/* footer */
+.card-footer{
+  padding:14px 32px;background:var(--bg);border-top:1px solid var(--border);
+  text-align:center;font-size:11.5px;color:var(--text-3);
+}
+.card-footer a{color:var(--blue);text-decoration:none;}
+
+/* password toggle */
+.pwd-wrap{position:relative;}
+.pwd-wrap input{padding-right:40px;}
+.pwd-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);font-size:16px;padding:2px;}
+.pwd-toggle:hover{color:var(--text-2);}
+
+/* badge */
+.tab-badge{background:var(--blue-lt);color:var(--blue);font-size:10px;font-weight:700;padding:1px 5px;border-radius:5px;margin-left:3px;}
+</style>
+</head>
+<body>
+
+<div class="govbar">
+  <span>🇧🇷</span><strong>BRASIL</strong>
+  <span style="opacity:.3">|</span>
+  <a href="#">Acesso à informação</a>
+  <a href="#">Participe</a>
+  <a href="#">Legislação</a>
+</div>
+
+<div class="brand-strip">
+  <span class="logo-badge">BME</span>
+  <span class="logo-text">Banco Multidimensional de Estatísticas · IBGE</span>
+</div>
+
+<div class="page">
+  <div class="card">
+
+    <div class="card-top">
+      <div class="ico">📊</div>
+      <h1>Bem-vindo ao BME</h1>
+      <p>Escolha como deseja acessar o sistema</p>
+    </div>
+
+    <div class="card-body">
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('govbr',this)">
+          gov.br
+        </button>
+        <button class="tab" onclick="showTab('ad',this)">
+          Rede IBGE
+        </button>
+        <button class="tab" onclick="showTab('bme',this)">
+          Conta BME
+        </button>
+      </div>
+
+      <!-- Gov.br -->
+      <div class="auth-section active" id="tab-govbr">
+        <button class="govbr-btn" onclick="window.location='home.html'">
+          <div class="govbr-ico">🔑</div>
+          <div class="txt">
+            Entrar com gov.br
+            <small>Conta de Acesso Digital do Governo Federal</small>
+          </div>
+        </button>
+        <div class="govbr-note">
+          🔒 Você será redirecionado para o portal <strong>gov.br</strong> para autenticação segura. Utilizamos OAuth 2.0 / OpenID Connect.
+        </div>
+        <div class="divider">ou cadastre-se</div>
+        <p style="font-size:12.5px;color:var(--text-3);text-align:center;line-height:1.6;">
+          Não tem conta gov.br? <a href="#" style="color:var(--blue);">Criar conta gratuita</a> no portal do governo federal.
+        </p>
+      </div>
+
+      <!-- AD -->
+      <div class="auth-section" id="tab-ad">
+        <div class="field">
+          <label>Usuário de rede</label>
+          <div class="domain-prefix">
+            <span class="domain-tag">IBGE\</span>
+            <input type="text" placeholder="nome.sobrenome" autocomplete="username">
+          </div>
+          <div class="field-hint">Login da rede corporativa do IBGE (Active Directory)</div>
+        </div>
+        <div class="field">
+          <label>Senha de rede</label>
+          <div class="pwd-wrap">
+            <input type="password" id="adPwd" placeholder="Senha de rede" autocomplete="current-password">
+            <button class="pwd-toggle" onclick="togglePwd('adPwd',this)">👁</button>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="window.location='home.html'">Entrar com rede IBGE</button>
+        <div class="forgot" style="margin-top:12px;">
+          Problemas de acesso? <a href="#">Contate o suporte de TI</a>
+        </div>
+      </div>
+
+      <!-- BME local -->
+      <div class="auth-section" id="tab-bme">
+        <div class="field">
+          <label>E-mail ou usuário BME</label>
+          <input type="text" placeholder="seu@email.gov.br" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <div class="pwd-wrap">
+            <input type="password" id="bmePwd" placeholder="Sua senha BME" autocomplete="current-password">
+            <button class="pwd-toggle" onclick="togglePwd('bmePwd',this)">👁</button>
+          </div>
+        </div>
+        <button class="submit-btn" onclick="window.location='home.html'">Entrar</button>
+        <div class="forgot">
+          <a href="#">Esqueci minha senha</a> · <a href="#">Solicitar conta BME</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card-footer">
+      Ao acessar você concorda com os <a href="#">Termos de uso</a> · <a href="home.html">Continuar sem conta</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.auth-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function togglePwd(id, btn) {
+  const f = document.getElementById(id);
+  f.type = f.type === 'password' ? 'text' : 'password';
+  btn.textContent = f.type === 'password' ? '👁' : '🙈';
+}
+</script>
+</body>
+</html>
